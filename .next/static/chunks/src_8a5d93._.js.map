@@ -1,0 +1,9 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file://D%3A/fwrp/src/lib/utils.ts"],"sourcesContent":["import { clsx, type ClassValue } from \"clsx\"\nimport { twMerge } from \"tailwind-merge\"\n\nexport function cn(...inputs: ClassValue[]) {\n  return twMerge(clsx(inputs))\n}\n"],"names":[],"mappings":";;;AAAA;AACA;;;AAEO,SAAS,GAAG,GAAG,MAAoB;IACxC,OAAO,CAAA,GAAA,8JAAA,CAAA,UAAO,AAAD,EAAE,CAAA,GAAA,wIAAA,CAAA,OAAI,AAAD,EAAE;AACtB"}},
+    {"offset": {"line": 20, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}},
+    {"offset": {"line": 26, "column": 0}, "map": {"version":3,"sources":["file://D%3A/fwrp/src/components/ui/label.tsx"],"sourcesContent":["\"use client\"\n\nimport * as React from \"react\"\nimport * as LabelPrimitive from \"@radix-ui/react-label\"\nimport { cva, type VariantProps } from \"class-variance-authority\"\n\nimport { cn } from \"@/lib/utils\"\n\nconst labelVariants = cva(\n  \"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70\"\n)\n\nconst Label = React.forwardRef<\n  React.ElementRef<typeof LabelPrimitive.Root>,\n  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &\n    VariantProps<typeof labelVariants>\n>(({ className, ...props }, ref) => (\n  <LabelPrimitive.Root\n    ref={ref}\n    className={cn(labelVariants(), className)}\n    {...props}\n  />\n))\nLabel.displayName = LabelPrimitive.Root.displayName\n\nexport { Label }\n"],"names":[],"mappings":";;;;AAEA;AAEA;AAEA;AAHA;AAHA;;;;;;AAQA,MAAM,gBAAgB,CAAA,GAAA,mKAAA,CAAA,MAAG,AAAD,EACtB;AAGF,MAAM,sBAAQ,8JAAM,UAAU,MAI5B,CAAC,EAAE,SAAS,EAAE,GAAG,OAAO,EAAE,oBAC1B,6LAAC,qKAAe,IAAI;QAClB,KAAK;QACL,WAAW,CAAA,GAAA,sHAAA,CAAA,KAAE,AAAD,EAAE,iBAAiB;QAC9B,GAAG,KAAK;;;;;;;AAGb,MAAM,WAAW,GAAG,qKAAe,IAAI,CAAC,WAAW"}},
+    {"offset": {"line": 59, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
+}
