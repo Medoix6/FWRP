@@ -9,6 +9,7 @@ import { useEffect, useState } from "react"
 import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { doc, getDoc } from "firebase/firestore"
+import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar"
 
 // This would typically come from an API or database
 const feedItems = [
@@ -37,7 +38,12 @@ const feedItems = [
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [user, setUser] = useState<{ displayName: string | null, email: string | null, fullName?: string | null }>({ displayName: null, email: null })
+  const [user, setUser] = useState<{ displayName: string | null, email: string | null, fullName?: string | null, avatar?: string | null }>({ displayName: null, email: null, avatar: null })
+  const [profileData, setProfileData] = useState({
+    fullName: "",
+    email: "",
+    avatar: ""
+  })
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -49,13 +55,20 @@ export default function Dashboard() {
             : "No Username"
         let email = firebaseUser.email || "No Email"
         let fullName = null
+        let avatar = ""
         // Fetch user profile from Firestore
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
         if (userDoc.exists()) {
           const data = userDoc.data()
           fullName = data.name || null
+          avatar = data.avatar || ""
         }
-        setUser({ displayName, email, fullName })
+        setUser({ displayName, email, fullName, avatar })
+        setProfileData({
+          fullName: fullName || displayName,
+          email: email,
+          avatar: avatar
+        })
       }
     })
     return () => unsubscribe()
@@ -85,14 +98,14 @@ export default function Dashboard() {
           <div className="flex-1 py-6 px-4 space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src="/placeholder.svg?height=80&width=80" alt="Profile" />
+                <AvatarImage src={profileData.avatar || "/placeholder.svg?height=80&width=80"} alt="Profile" />
                 <AvatarFallback>
                   <User className="h-10 w-10" />
                 </AvatarFallback>
               </Avatar>
               <div className="text-center">
-                <h3 className="font-medium">{user.fullName || user.displayName}</h3>
-                <p className="text-sm text-gray-500">{user.email}</p>
+                <h3 className="font-medium">{profileData.fullName}</h3>
+                <p className="text-sm text-gray-500">{profileData.email}</p>
               </div>
             </div>
 

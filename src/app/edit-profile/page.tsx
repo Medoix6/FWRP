@@ -16,8 +16,10 @@ import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
+import Script from "next/script"
 
 const storage = getStorage();
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 
 export default function EditProfile() {
   const router = useRouter()
@@ -63,9 +65,8 @@ export default function EditProfile() {
     bio: "",
     avatar: "",
   })
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -75,40 +76,64 @@ export default function EditProfile() {
     }))
   }
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setAvatarFile(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+  // Cloudinary Upload Widget handler
+  const handleCloudinaryUpload = () => {
+    if (typeof window !== "undefined" && (window as any).cloudinary) {
+      const myWidget = (window as any).cloudinary.createUploadWidget(
+        {
+          cloudName: 'drig5ndvt',
+          uploadPreset: 'avatar_upload',
+          cropping: true,
+          multiple: false,
+          folder: 'avatars',
+        },
+        async (error: any, result: any) => {
+          if (!error && result && result.event === "success") {
+            const url = result.info.secure_url;
+            setProfileData((prev) => ({ ...prev, avatar: url }));
+            try {
+              const currentUser = auth.currentUser;
+              if (!currentUser) throw new Error("No authenticated user");
+              const userRef = doc(db, "users", currentUser.uid);
+              // Save only the avatar URL using UID
+              await updateDoc(userRef, { avatar: url });
+              setErrorMsg(null);
+            } catch (err: any) {
+              setErrorMsg("Failed to update avatar in database.");
+            }
+          }
+        }
+      );
+      myWidget.open();
     }
-  }
+  };
+
+  const handleResetAvatar = async () => {
+    setProfileData((prev) => ({ ...prev, avatar: "" }));
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("No authenticated user");
+      const userRef = doc(db, "users", currentUser.uid);
+      await updateDoc(userRef, { avatar: "" });
+      setErrorMsg(null);
+    } catch (err: any) {
+      setErrorMsg("Failed to reset avatar in database.");
+    }
+  };
 
   const handleEditOrSubmit = async (e: React.FormEvent) => {
     if (!isEditMode) {
-      // Switch to edit mode, do not submit or redirect
       e.preventDefault();
       setIsEditMode(true);
       return;
     }
-    // In edit mode, proceed with submit
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMsg(null);
     try {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("No authenticated user");
       let avatarUrl = profileData.avatar;
-      console.log("Current user:", currentUser.uid);
-      if (avatarFile) {
-        const fileRef = storageRef(storage, `avatars/${currentUser.uid}`);
-        console.log("Uploading avatar to storage...");
-        await uploadBytes(fileRef, avatarFile);
-        avatarUrl = await getDownloadURL(fileRef);
-        console.log("Avatar uploaded. URL:", avatarUrl);
-      }
       const userRef = doc(db, "users", currentUser.uid);
       console.log("Updating Firestore profile...");
       await updateDoc(userRef, {
@@ -125,8 +150,9 @@ export default function EditProfile() {
       setProfileData((prev) => ({ ...prev, avatar: avatarUrl }));
       setIsEditMode(false);
       console.log("Profile updated successfully.");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating profile:", error);
+      setErrorMsg(error?.message || "Failed to update profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -156,7 +182,7 @@ export default function EditProfile() {
           <div className="flex-1 py-6 px-4 space-y-6">
             <div className="flex flex-col items-center mb-8">
               <Avatar className="w-24 h-24 mb-2">
-                <AvatarImage src={profileData.avatar || avatarPreview || "/placeholder.svg?height=80&width=80"} alt="Profile" />
+                <AvatarImage src={profileData.avatar || "/placeholder.svg?height=80&width=80"} alt="Profile" />
                 <AvatarFallback>
                   <User className="h-10 w-10" />
                 </AvatarFallback>
@@ -214,28 +240,16 @@ export default function EditProfile() {
                 <Label htmlFor="avatar">Profile Picture</Label>
                 <div className="mt-1 flex items-center space-x-5">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={profileData.avatar || avatarPreview || "/placeholder.svg?height=80&width=80"} alt="Profile" />
+                    <AvatarImage src={profileData.avatar || "/placeholder.svg?height=80&width=80"} alt="Profile" />
                     <AvatarFallback>
                       <User className="h-10 w-10" />
                     </AvatarFallback>
                   </Avatar>
                   {isEditMode && (
-                    <label className="block">
-                      <span className="sr-only">Choose profile picture</span>
-                      <Input
-                        id="avatar"
-                        name="avatar"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        className="block w-full text-sm text-gray-500
-                          file:mr-4 file:py-2 file:px-4
-                          file:rounded-md file:border-0
-                          file:text-sm file:font-semibold
-                          file:bg-green-50 file:text-green-700
-                          hover:file:bg-green-100"
-                      />
-                    </label>
+                    <>
+                      <Button type="button" onClick={handleCloudinaryUpload} className="ml-4 bg-blue-600 text-white">Upload Avatar</Button>
+                      <Button type="button" onClick={handleResetAvatar} className="ml-2 bg-gray-200 text-gray-800">Reset Avatar</Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -305,6 +319,10 @@ export default function EditProfile() {
                 />
               </div>
 
+              {errorMsg && (
+                <div className="mb-4 text-red-600 font-semibold">{errorMsg}</div>
+              )}
+
               <div className="pt-4 flex justify-end space-x-4">
                 {isEditMode && (
                   <Button type="button" variant="outline" onClick={() => setIsEditMode(false)}>
@@ -327,6 +345,9 @@ export default function EditProfile() {
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
+
+      {/* Cloudinary Upload Widget Script */}
+      <Script src="https://upload-widget.cloudinary.com/global/all.js" strategy="beforeInteractive" />
     </div>
   )
 }

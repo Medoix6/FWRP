@@ -15,6 +15,7 @@ import { useEffect } from "react"
 import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged, getAuth } from "firebase/auth"
 import { doc, getDoc } from "firebase/firestore"
+import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar"
 
 export default function DonateFood() {
   const router = useRouter()
@@ -73,6 +74,12 @@ export default function DonateFood() {
     displayName: "",
     email: "",
     fullName: "",
+    avatar: ""
+  })
+  const [profileData, setProfileData] = useState({
+    fullName: "",
+    email: "",
+    avatar: ""
   })
 
   useEffect(() => {
@@ -81,10 +88,19 @@ export default function DonateFood() {
       const currentUser = auth.currentUser
       if (currentUser) {
         const userDoc = await getDoc(doc(db, "users", currentUser.uid))
+        const fullName = userDoc.exists() ? userDoc.data().name : ""
+        const avatar = userDoc.exists() ? userDoc.data().avatar || "" : ""
+        const email = currentUser.email || ""
         setUser({
           displayName: currentUser.displayName || "",
-          email: currentUser.email || "",
-          fullName: userDoc.exists() ? userDoc.data().name : "",
+          email: email,
+          fullName: fullName,
+          avatar: avatar
+        })
+        setProfileData({
+          fullName: fullName || currentUser.displayName || "",
+          email: email,
+          avatar: avatar
         })
       }
     }
@@ -115,14 +131,14 @@ export default function DonateFood() {
           <div className="flex-1 py-6 px-4 space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src="/placeholder.svg?height=80&width=80" alt="Profile" />
+                <AvatarImage src={profileData.avatar || "/placeholder.svg?height=80&width=80"} alt="Profile" />
                 <AvatarFallback>
                   <User className="h-10 w-10" />
                 </AvatarFallback>
               </Avatar>
               <div className="text-center">
-                <h3 className="font-medium">{user.fullName || user.displayName}</h3>
-                <p className="text-sm text-gray-500">{user.email}</p>
+                <h3 className="font-medium">{profileData.fullName}</h3>
+                <p className="text-sm text-gray-500">{profileData.email}</p>
               </div>
             </div>
 
