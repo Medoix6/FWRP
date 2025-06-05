@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings } from "lucide-react"
+import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings, Shield } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
 import { auth, db } from "@/app/firebase"
@@ -26,6 +26,7 @@ export default function EditProfile() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [user, setUser] = useState<{ displayName: string | null, email: string | null }>({ displayName: null, email: null })
   const [isEditMode, setIsEditMode] = useState(false)
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -48,7 +49,12 @@ export default function EditProfile() {
             bio: data.bio || "",
             avatar: data.avatar || "",
           })
+          setIsAdmin(!!data.isAdmin)
+        } else {
+          setIsAdmin(false)
         }
+      } else {
+        setIsAdmin(false)
       }
     })
     return () => unsubscribe()
@@ -193,18 +199,31 @@ export default function EditProfile() {
             </div>
 
             <nav className="mt-8 space-y-2">
-              <Link href="/edit-profile" className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md">
-                <Settings className="h-5 w-5 mr-3" />
-                Show Profile
-              </Link>
-              <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Home className="h-5 w-5 mr-3" />
-                Dashboard
-              </Link>
-              <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Gift className="h-5 w-5 mr-3" />
-                Donate Food
-              </Link>
+              {isAdmin === null ? null : (
+                <>
+                  <Link href="/edit-profile" className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md">
+                    <Settings className="h-5 w-5 mr-3" />
+                    Show Profile
+                  </Link>
+                  {isAdmin ? (
+                    <Link href="/admin" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                      <Shield className="h-5 w-5 mr-3" />
+                      Admin Dashboard
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                        <Home className="h-5 w-5 mr-3" />
+                        Dashboard
+                      </Link>
+                      <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                        <Gift className="h-5 w-5 mr-3" />
+                        Donate Food
+                      </Link>
+                    </>
+                  )}
+                </>
+              )}
             </nav>
           </div>
 

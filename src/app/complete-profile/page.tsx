@@ -24,10 +24,8 @@ export default function CompleteProfile() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    // Only allow digits and a single leading '+' for phone input, supporting international phone numbers
     if (name === "phone") {
       let numericValue = value.replace(/[^\d+]/g, "")
-      // Only allow one leading plus
       if (numericValue.startsWith("+")) {
         numericValue = "+" + numericValue.slice(1).replace(/[^\d]/g, "")
       } else {
@@ -55,6 +53,8 @@ export default function CompleteProfile() {
       }
 
       // Save profile data to Firestore under users/{uid}
+      // Check if admin flag is set in localStorage (from signup)
+      const isAdmin = localStorage.getItem("signup_isAdmin") === "true";
       await setDoc(doc(db, "users", user.uid), {
         name: formData.name, 
         phone: formData.phone, 
@@ -66,7 +66,10 @@ export default function CompleteProfile() {
         additionalInfo: formData.additionalInfo,
         email: user.email, 
         uid: user.uid,
+        ...(isAdmin ? { isAdmin: true } : {}),
       })
+      // Remove the flag after use
+      localStorage.removeItem("signup_isAdmin")
 
       // After successful profile completion, redirect to the login page
       router.push("/login")

@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { auth } from "@/app/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth" 
+import { doc, getDoc } from "firebase/firestore"
+import { db } from "@/app/firebase"
 
 export default function Login() {
   const router = useRouter()
@@ -26,8 +28,16 @@ export default function Login() {
       return
     }
     try {
-      await signInWithEmailAndPassword(auth, email, password)
-      router.push("/dashboard")
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+      // Fetch user profile from Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid))
+      const userData = userDoc.exists() ? userDoc.data() : null
+      if (userData && userData.isAdmin) {
+        router.push("/admin")
+      } else {
+        router.push("/dashboard")
+      }
     } catch (err) {
       setError("Invalid email or password")
     }
