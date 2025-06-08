@@ -17,6 +17,7 @@ import { onAuthStateChanged } from "firebase/auth"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
 import Script from "next/script"
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
 
 const storage = getStorage();
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
@@ -27,6 +28,7 @@ export default function EditProfile() {
   const [user, setUser] = useState<{ displayName: string | null, email: string | null }>({ displayName: null, email: null })
   const [isEditMode, setIsEditMode] = useState(false)
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const [cloudinaryWidgetOpen, setCloudinaryWidgetOpen] = useState(false)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -84,6 +86,7 @@ export default function EditProfile() {
 
   // Cloudinary Upload Widget handler
   const handleCloudinaryUpload = () => {
+    setCloudinaryWidgetOpen(true);
     if (typeof window !== "undefined" && (window as any).cloudinary) {
       const myWidget = (window as any).cloudinary.createUploadWidget(
         {
@@ -108,6 +111,7 @@ export default function EditProfile() {
               setErrorMsg("Failed to update avatar in database.");
             }
           }
+          setCloudinaryWidgetOpen(false);
         }
       );
       myWidget.open();
@@ -164,16 +168,58 @@ export default function EditProfile() {
     }
   }
 
+  const [showPasswordFields, setShowPasswordFields] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null)
+  const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false)
+
+  const passwordValidation = (password: string) => {
+    // At least 6 characters, 1 capital letter, 1 number
+    return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password);
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    setIsPasswordSubmitting(true);
+    if (!passwordValidation(newPassword)) {
+      setPasswordError("Password must be at least 6 characters, include 1 capital letter and 1 number.");
+      setIsPasswordSubmitting(false);
+      return;
+    }
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser || !currentUser.email) throw new Error("No authenticated user");
+      // Re-authenticate
+      const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+      await reauthenticateWithCredential(currentUser, credential);
+      await updatePassword(currentUser, newPassword);
+      setPasswordSuccess("Password updated successfully.");
+      setShowPasswordFields(false);
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (error: any) {
+      if (error.code === "auth/invalid-credential" || error.message?.includes("auth/invalid-credential")) {
+        setPasswordError("The current password you entered is incorrect.");
+      } else {
+        setPasswordError(error.message || "Failed to update password.");
+      }
+    } finally {
+      setIsPasswordSubmitting(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white">
           <Menu className="h-5 w-5" />
         </Button>
       </div>
 
-      {/* Sidebar */}
       <div
         className={`
         fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
@@ -342,6 +388,44 @@ export default function EditProfile() {
                 <div className="mb-4 text-red-600 font-semibold">{errorMsg}</div>
               )}
 
+              <div className="pt-4 flex flex-col gap-2">
+                <Button type="button" variant="outline" onClick={() => setShowPasswordFields((v) => !v)}>
+                  {showPasswordFields ? "Cancel Password Change" : "Change Password"}
+                </Button>
+                {showPasswordFields && (
+                  <div className="space-y-4 mt-2">
+                    <div>
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <Input
+                        id="currentPassword"
+                        name="currentPassword"
+                        type="password"
+                        value={currentPassword}
+                        onChange={e => setCurrentPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <Input
+                        id="newPassword"
+                        name="newPassword"
+                        type="password"
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                    {passwordError && <div className="text-red-600">{passwordError}</div>}
+                    {passwordSuccess && <div className="text-green-600">{passwordSuccess}</div>}
+                    <Button onClick={handlePasswordChange} disabled={isPasswordSubmitting} type="button">
+                      {isPasswordSubmitting ? "Updating..." : "Update Password"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               <div className="pt-4 flex justify-end space-x-4">
                 {isEditMode && (
                   <Button type="button" variant="outline" onClick={() => setIsEditMode(false)}>
@@ -360,12 +444,20 @@ export default function EditProfile() {
         </main>
       </div>
 
-      {/* Overlay for mobile sidebar */}
+
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Cloudinary Upload Widget Script */}
+      {cloudinaryWidgetOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md flex flex-col items-center">
+            <span className="mb-4 text-lg font-semibold">Uploading Avatar...</span>
+            <Button onClick={() => setCloudinaryWidgetOpen(false)} variant="outline">Cancel</Button>
+          </div>
+        </div>
+      )}
+
       <Script src="https://upload-widget.cloudinary.com/global/all.js" strategy="beforeInteractive" />
     </div>
   )

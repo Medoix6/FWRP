@@ -12,6 +12,10 @@ export default function SignUp() {
   const router = useRouter();
   const [error, setError] = useState("");
 
+  const passwordValidation = (password: string) => {
+    return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password);
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
@@ -21,13 +25,15 @@ export default function SignUp() {
       setError("Both passwords don't match");
       return;
     }
+    if (!passwordValidation(password.value)) {
+      setError("Password must be at least 6 characters, include 1 capital letter and 1 number.");
+      return;
+    }
     setError("");
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
       const user = userCredential.user;
-
-      // Redirect to complete profile page
       router.push("/complete-profile");
     } catch (error) {
       console.error("Error signing up:", error);

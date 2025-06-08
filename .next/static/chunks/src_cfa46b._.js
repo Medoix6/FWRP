@@ -325,6 +325,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$scri
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$storage$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/@firebase/storage/dist/index.esm2017.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$683d5879$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__z__as__onAuthStateChanged$3e$__ = __turbopack_import__("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-683d5879.js [app-client] (ecmascript) <export z as onAuthStateChanged>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/@firebase/firestore/dist/index.esm2017.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$683d5879$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__W__as__EmailAuthProvider$3e$__ = __turbopack_import__("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-683d5879.js [app-client] (ecmascript) <export W as EmailAuthProvider>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$683d5879$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__a4__as__reauthenticateWithCredential$3e$__ = __turbopack_import__("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-683d5879.js [app-client] (ecmascript) <export a4 as reauthenticateWithCredential>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$683d5879$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__an__as__updatePassword$3e$__ = __turbopack_import__("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/esm2017/index-683d5879.js [app-client] (ecmascript) <export an as updatePassword>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$menu$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Menu$3e$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/menu.js [app-client] (ecmascript) <export default as Menu>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__User$3e$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/user.js [app-client] (ecmascript) <export default as User>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$settings$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Settings$3e$__ = __turbopack_import__("[project]/node_modules/lucide-react/dist/esm/icons/settings.js [app-client] (ecmascript) <export default as Settings>");
@@ -336,6 +339,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 ;
 var _s = __turbopack_refresh__.signature();
 "use client";
+;
 ;
 ;
 ;
@@ -363,6 +367,7 @@ function EditProfile() {
     });
     const [isEditMode, setIsEditMode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [isAdmin, setIsAdmin] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [cloudinaryWidgetOpen, setCloudinaryWidgetOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "EditProfile.useEffect": ()=>{
             const unsubscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$683d5879$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__z__as__onAuthStateChanged$3e$__["onAuthStateChanged"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$firebase$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["auth"], {
@@ -422,6 +427,7 @@ function EditProfile() {
     };
     // Cloudinary Upload Widget handler
     const handleCloudinaryUpload = ()=>{
+        setCloudinaryWidgetOpen(true);
         if ("object" !== "undefined" && window.cloudinary) {
             const myWidget = window.cloudinary.createUploadWidget({
                 cloudName: 'drig5ndvt',
@@ -449,6 +455,7 @@ function EditProfile() {
                         setErrorMsg("Failed to update avatar in database.");
                     }
                 }
+                setCloudinaryWidgetOpen(false);
             });
             myWidget.open();
         }
@@ -509,6 +516,47 @@ function EditProfile() {
             setIsSubmitting(false);
         }
     };
+    const [showPasswordFields, setShowPasswordFields] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [currentPassword, setCurrentPassword] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
+    const [newPassword, setNewPassword] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
+    const [passwordError, setPasswordError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [passwordSuccess, setPasswordSuccess] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [isPasswordSubmitting, setIsPasswordSubmitting] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const passwordValidation = (password)=>{
+        // At least 6 characters, 1 capital letter, 1 number
+        return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password);
+    };
+    const handlePasswordChange = async (e)=>{
+        e.preventDefault();
+        setPasswordError(null);
+        setPasswordSuccess(null);
+        setIsPasswordSubmitting(true);
+        if (!passwordValidation(newPassword)) {
+            setPasswordError("Password must be at least 6 characters, include 1 capital letter and 1 number.");
+            setIsPasswordSubmitting(false);
+            return;
+        }
+        try {
+            const currentUser = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$firebase$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["auth"].currentUser;
+            if (!currentUser || !currentUser.email) throw new Error("No authenticated user");
+            // Re-authenticate
+            const credential = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$683d5879$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__W__as__EmailAuthProvider$3e$__["EmailAuthProvider"].credential(currentUser.email, currentPassword);
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$683d5879$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__a4__as__reauthenticateWithCredential$3e$__["reauthenticateWithCredential"])(currentUser, credential);
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$esm2017$2f$index$2d$683d5879$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__an__as__updatePassword$3e$__["updatePassword"])(currentUser, newPassword);
+            setPasswordSuccess("Password updated successfully.");
+            setShowPasswordFields(false);
+            setCurrentPassword("");
+            setNewPassword("");
+        } catch (error) {
+            if (error.code === "auth/invalid-credential" || error.message?.includes("auth/invalid-credential")) {
+                setPasswordError("The current password you entered is incorrect.");
+            } else {
+                setPasswordError(error.message || "Failed to update password.");
+            }
+        } finally{
+            setIsPasswordSubmitting(false);
+        }
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "min-h-screen bg-gray-100 flex",
         children: [
@@ -523,17 +571,17 @@ function EditProfile() {
                         className: "h-5 w-5"
                     }, void 0, false, {
                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                        lineNumber: 172,
+                        lineNumber: 219,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                    lineNumber: 171,
+                    lineNumber: 218,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                lineNumber: 170,
+                lineNumber: 217,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -551,12 +599,12 @@ function EditProfile() {
                                 children: "FWRP"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                                lineNumber: 185,
+                                lineNumber: 231,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                            lineNumber: 184,
+                            lineNumber: 230,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -573,7 +621,7 @@ function EditProfile() {
                                                     alt: "Profile"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 191,
+                                                    lineNumber: 237,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
@@ -581,18 +629,18 @@ function EditProfile() {
                                                         className: "h-10 w-10"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                        lineNumber: 193,
+                                                        lineNumber: 239,
                                                         columnNumber: 19
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 192,
+                                                    lineNumber: 238,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                            lineNumber: 190,
+                                            lineNumber: 236,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -600,13 +648,13 @@ function EditProfile() {
                                             children: profileData.fullName || user.displayName
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                            lineNumber: 196,
+                                            lineNumber: 242,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                    lineNumber: 189,
+                                    lineNumber: 235,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
@@ -621,14 +669,14 @@ function EditProfile() {
                                                         className: "h-5 w-5 mr-3"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                        lineNumber: 205,
+                                                        lineNumber: 251,
                                                         columnNumber: 21
                                                     }, this),
                                                     "Show Profile"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                lineNumber: 204,
+                                                lineNumber: 250,
                                                 columnNumber: 19
                                             }, this),
                                             isAdmin ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -639,14 +687,14 @@ function EditProfile() {
                                                         className: "h-5 w-5 mr-3"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                        lineNumber: 210,
+                                                        lineNumber: 256,
                                                         columnNumber: 23
                                                     }, this),
                                                     "Admin Dashboard"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                lineNumber: 209,
+                                                lineNumber: 255,
                                                 columnNumber: 21
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
                                                 children: [
@@ -658,14 +706,14 @@ function EditProfile() {
                                                                 className: "h-5 w-5 mr-3"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                                lineNumber: 216,
+                                                                lineNumber: 262,
                                                                 columnNumber: 25
                                                             }, this),
                                                             "Dashboard"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                        lineNumber: 215,
+                                                        lineNumber: 261,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -676,14 +724,14 @@ function EditProfile() {
                                                                 className: "h-5 w-5 mr-3"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                                lineNumber: 220,
+                                                                lineNumber: 266,
                                                                 columnNumber: 25
                                                             }, this),
                                                             "Donate Food"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                        lineNumber: 219,
+                                                        lineNumber: 265,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
@@ -692,13 +740,13 @@ function EditProfile() {
                                     }, void 0, true)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                    lineNumber: 201,
+                                    lineNumber: 247,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                            lineNumber: 188,
+                            lineNumber: 234,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -714,35 +762,35 @@ function EditProfile() {
                                             className: "h-5 w-5 mr-3"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                            lineNumber: 233,
+                                            lineNumber: 279,
                                             columnNumber: 17
                                         }, this),
                                         "Sign out"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                    lineNumber: 232,
+                                    lineNumber: 278,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                                lineNumber: 231,
+                                lineNumber: 277,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                            lineNumber: 230,
+                            lineNumber: 276,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                    lineNumber: 183,
+                    lineNumber: 229,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                lineNumber: 177,
+                lineNumber: 223,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -764,19 +812,19 @@ function EditProfile() {
                                                 className: "h-5 w-5 mr-2"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                lineNumber: 246,
+                                                lineNumber: 292,
                                                 columnNumber: 17
                                             }, this),
                                             "Back to Dashboard"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                                        lineNumber: 245,
+                                        lineNumber: 291,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                    lineNumber: 244,
+                                    lineNumber: 290,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -784,18 +832,18 @@ function EditProfile() {
                                     children: "Show Profile"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                    lineNumber: 250,
+                                    lineNumber: 296,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                            lineNumber: 243,
+                            lineNumber: 289,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                        lineNumber: 242,
+                        lineNumber: 288,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -808,7 +856,7 @@ function EditProfile() {
                                     children: "Personal Information"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                    lineNumber: 255,
+                                    lineNumber: 301,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -822,7 +870,7 @@ function EditProfile() {
                                                     children: "Profile Picture"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 259,
+                                                    lineNumber: 305,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -836,7 +884,7 @@ function EditProfile() {
                                                                     alt: "Profile"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                                    lineNumber: 262,
+                                                                    lineNumber: 308,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AvatarFallback"], {
@@ -844,18 +892,18 @@ function EditProfile() {
                                                                         className: "h-10 w-10"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                                        lineNumber: 264,
+                                                                        lineNumber: 310,
                                                                         columnNumber: 23
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                                    lineNumber: 263,
+                                                                    lineNumber: 309,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 261,
+                                                            lineNumber: 307,
                                                             columnNumber: 19
                                                         }, this),
                                                         isEditMode && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -867,7 +915,7 @@ function EditProfile() {
                                                                     children: "Upload Avatar"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                                    lineNumber: 269,
+                                                                    lineNumber: 315,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -877,7 +925,7 @@ function EditProfile() {
                                                                     children: "Reset Avatar"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                                    lineNumber: 270,
+                                                                    lineNumber: 316,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
@@ -885,13 +933,13 @@ function EditProfile() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 260,
+                                                    lineNumber: 306,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                            lineNumber: 258,
+                                            lineNumber: 304,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -904,7 +952,7 @@ function EditProfile() {
                                                             children: "Full Name"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 278,
+                                                            lineNumber: 324,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -916,13 +964,13 @@ function EditProfile() {
                                                             readOnly: !isEditMode
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 279,
+                                                            lineNumber: 325,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 277,
+                                                    lineNumber: 323,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -932,7 +980,7 @@ function EditProfile() {
                                                             children: "Email Address"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 283,
+                                                            lineNumber: 329,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -945,13 +993,13 @@ function EditProfile() {
                                                             readOnly: !isEditMode
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 284,
+                                                            lineNumber: 330,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 282,
+                                                    lineNumber: 328,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -961,7 +1009,7 @@ function EditProfile() {
                                                             children: "Phone Number"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 296,
+                                                            lineNumber: 342,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -973,13 +1021,13 @@ function EditProfile() {
                                                             readOnly: !isEditMode
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 297,
+                                                            lineNumber: 343,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 295,
+                                                    lineNumber: 341,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -989,7 +1037,7 @@ function EditProfile() {
                                                             children: "Address"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 301,
+                                                            lineNumber: 347,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1001,13 +1049,13 @@ function EditProfile() {
                                                             readOnly: !isEditMode
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 302,
+                                                            lineNumber: 348,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 300,
+                                                    lineNumber: 346,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1017,7 +1065,7 @@ function EditProfile() {
                                                             children: "City"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 306,
+                                                            lineNumber: 352,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1029,13 +1077,13 @@ function EditProfile() {
                                                             readOnly: !isEditMode
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 307,
+                                                            lineNumber: 353,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 305,
+                                                    lineNumber: 351,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1045,7 +1093,7 @@ function EditProfile() {
                                                             children: "State/Province"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 311,
+                                                            lineNumber: 357,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1057,13 +1105,13 @@ function EditProfile() {
                                                             readOnly: !isEditMode
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 312,
+                                                            lineNumber: 358,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 310,
+                                                    lineNumber: 356,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1073,7 +1121,7 @@ function EditProfile() {
                                                             children: "Postal Code"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 316,
+                                                            lineNumber: 362,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1085,19 +1133,19 @@ function EditProfile() {
                                                             readOnly: !isEditMode
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                            lineNumber: 317,
+                                                            lineNumber: 363,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 315,
+                                                    lineNumber: 361,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                            lineNumber: 276,
+                                            lineNumber: 322,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1107,7 +1155,7 @@ function EditProfile() {
                                                     children: "Bio"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 329,
+                                                    lineNumber: 375,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Textarea"], {
@@ -1120,13 +1168,13 @@ function EditProfile() {
                                                     readOnly: !isEditMode
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 330,
+                                                    lineNumber: 376,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                            lineNumber: 328,
+                                            lineNumber: 374,
                                             columnNumber: 15
                                         }, this),
                                         errorMsg && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1134,8 +1182,119 @@ function EditProfile() {
                                             children: errorMsg
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                            lineNumber: 342,
+                                            lineNumber: 388,
                                             columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "pt-4 flex flex-col gap-2",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                                    type: "button",
+                                                    variant: "outline",
+                                                    onClick: ()=>setShowPasswordFields((v)=>!v),
+                                                    children: showPasswordFields ? "Cancel Password Change" : "Change Password"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                    lineNumber: 392,
+                                                    columnNumber: 17
+                                                }, this),
+                                                showPasswordFields && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "space-y-4 mt-2",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
+                                                                    htmlFor: "currentPassword",
+                                                                    children: "Current Password"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                                    lineNumber: 398,
+                                                                    columnNumber: 23
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
+                                                                    id: "currentPassword",
+                                                                    name: "currentPassword",
+                                                                    type: "password",
+                                                                    value: currentPassword,
+                                                                    onChange: (e)=>setCurrentPassword(e.target.value),
+                                                                    required: true
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                                    lineNumber: 399,
+                                                                    columnNumber: 23
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                            lineNumber: 397,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
+                                                                    htmlFor: "newPassword",
+                                                                    children: "New Password"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                                    lineNumber: 409,
+                                                                    columnNumber: 23
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
+                                                                    id: "newPassword",
+                                                                    name: "newPassword",
+                                                                    type: "password",
+                                                                    value: newPassword,
+                                                                    onChange: (e)=>setNewPassword(e.target.value),
+                                                                    required: true,
+                                                                    minLength: 6
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                                    lineNumber: 410,
+                                                                    columnNumber: 23
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                            lineNumber: 408,
+                                                            columnNumber: 21
+                                                        }, this),
+                                                        passwordError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "text-red-600",
+                                                            children: passwordError
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                            lineNumber: 420,
+                                                            columnNumber: 39
+                                                        }, this),
+                                                        passwordSuccess && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "text-green-600",
+                                                            children: passwordSuccess
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                            lineNumber: 421,
+                                                            columnNumber: 41
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                                            onClick: handlePasswordChange,
+                                                            disabled: isPasswordSubmitting,
+                                                            type: "button",
+                                                            children: isPasswordSubmitting ? "Updating..." : "Update Password"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                            lineNumber: 422,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/app/edit-profile/page.tsx",
+                                                    lineNumber: 396,
+                                                    columnNumber: 19
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/app/edit-profile/page.tsx",
+                                            lineNumber: 391,
+                                            columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "pt-4 flex justify-end space-x-4",
@@ -1147,7 +1306,7 @@ function EditProfile() {
                                                     children: "Cancel"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 347,
+                                                    lineNumber: 431,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1156,36 +1315,36 @@ function EditProfile() {
                                                     children: isSubmitting ? "Saving..." : isEditMode ? "Save Changes" : "Edit"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                                    lineNumber: 351,
+                                                    lineNumber: 435,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                                            lineNumber: 345,
+                                            lineNumber: 429,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/edit-profile/page.tsx",
-                                    lineNumber: 257,
+                                    lineNumber: 303,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/edit-profile/page.tsx",
-                            lineNumber: 254,
+                            lineNumber: 300,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/edit-profile/page.tsx",
-                        lineNumber: 253,
+                        lineNumber: 299,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                lineNumber: 241,
+                lineNumber: 287,
                 columnNumber: 7
             }, this),
             sidebarOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1193,7 +1352,40 @@ function EditProfile() {
                 onClick: ()=>setSidebarOpen(false)
             }, void 0, false, {
                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                lineNumber: 365,
+                lineNumber: 449,
+                columnNumber: 9
+            }, this),
+            cloudinaryWidgetOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "bg-white rounded-lg shadow-lg p-6 w-full max-w-md flex flex-col items-center",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                            className: "mb-4 text-lg font-semibold",
+                            children: "Uploading Avatar..."
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/edit-profile/page.tsx",
+                            lineNumber: 455,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                            onClick: ()=>setCloudinaryWidgetOpen(false),
+                            variant: "outline",
+                            children: "Cancel"
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/edit-profile/page.tsx",
+                            lineNumber: 456,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/src/app/edit-profile/page.tsx",
+                    lineNumber: 454,
+                    columnNumber: 11
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/src/app/edit-profile/page.tsx",
+                lineNumber: 453,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$script$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -1201,17 +1393,17 @@ function EditProfile() {
                 strategy: "beforeInteractive"
             }, void 0, false, {
                 fileName: "[project]/src/app/edit-profile/page.tsx",
-                lineNumber: 369,
+                lineNumber: 461,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/edit-profile/page.tsx",
-        lineNumber: 168,
+        lineNumber: 216,
         columnNumber: 5
     }, this);
 }
-_s(EditProfile, "eKc06HEWCP/tGPfb1VNN30p4o6k=", false, function() {
+_s(EditProfile, "gaFY727Av/JZQ1/1AWQ3x5jf19s=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
     ];

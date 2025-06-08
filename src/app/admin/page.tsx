@@ -5,12 +5,12 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Home, Gift, User, LogOut, Menu, Settings, Shield, Eye, Edit2, Trash2 } from "lucide-react"
+import { Home, Gift, User, LogOut, Menu, Settings, Shield, Edit2, Trash2 } from "lucide-react"
 import { db } from "@/app/firebase"
 import { collection, getDocs } from "firebase/firestore"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { getAuth } from "firebase/auth"
+import { getAuth, onAuthStateChanged } from "firebase/auth"
 
 export default function AdminPage() {
   const router = useRouter()
@@ -24,6 +24,7 @@ export default function AdminPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [adminAvatar, setAdminAvatar] = useState<string>("")
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -44,10 +45,26 @@ export default function AdminPage() {
     fetchUsers()
   }, [])
 
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDoc = await getDocs(collection(db, "users"));
+        const adminDoc = userDoc.docs.find(doc => doc.id === firebaseUser.uid);
+        if (adminDoc && adminDoc.data().avatar) {
+          setAdminAvatar(adminDoc.data().avatar);
+        } else {
+          setAdminAvatar("");
+        }
+      } else {
+        setAdminAvatar("");
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   const handleViewUser = (userId: number) => {
     console.log(`View user ${userId}`)
-    // In a real app, navigate to user details page
-    // router.push(`/admin/users/${userId}`)
   }
 
   const handleEditUser = (userId: string) => {
@@ -146,7 +163,7 @@ export default function AdminPage() {
           <div className="flex-1 py-6 px-4 space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src="/placeholder.svg?height=80&width=80" alt="Admin" />
+                <AvatarImage src={adminAvatar || "/placeholder.svg?height=80&width=80"} alt="Admin" />
                 <AvatarFallback>
                   <User className="h-10 w-10" />
                 </AvatarFallback>
@@ -225,12 +242,6 @@ export default function AdminPage() {
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Registered
-                      </th>
-                      <th
-                        scope="col"
                         className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         Actions
@@ -254,14 +265,8 @@ export default function AdminPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(user.registeredDate).toLocaleDateString()}
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleViewUser(user.id)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
                             <Button variant="ghost" size="sm" onClick={() => handleEditUser(user.id)}>
                               <Edit2 className="h-4 w-4" />
                             </Button>
