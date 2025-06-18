@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file://D%3A/FWRP/src/app/edit-donation/%5Bid%5D/page.tsx"],"sourcesContent":["\"use client\"\r\n\r\nimport type React from \"react\"\r\n\r\nimport { useState, useEffect } from \"react\"\r\nimport { useRouter, useParams } from \"next/navigation\"\r\nimport { Button } from \"@/components/ui/button\"\r\nimport { Input } from \"@/components/ui/input\"\r\nimport { Label } from \"@/components/ui/label\"\r\nimport { Textarea } from \"@/components/ui/textarea\"\r\nimport { Avatar, AvatarFallback, AvatarImage } from \"@/components/ui/avatar\"\r\nimport { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings } from \"lucide-react\"\r\nimport Link from \"next/link\"\r\n\r\nexport default function EditDonation() {\r\n  // ...existing code from edit-donation/page.tsx...\r\n}\r\n"],"names":[],"mappings":";;;AAAA;AAce,SAAS;AACtB,kDAAkD;AACpD;KAFwB"}},
+    {"offset": {"line": 20, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
+}

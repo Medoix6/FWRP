@@ -54,17 +54,36 @@ export default function DonateFood() {
     setIsSubmitting(true)
 
     try {
-      // Here you would typically upload the image and submit the form data to your backend
-      console.log("Form data:", formData)
-      console.log("Image uploaded")
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Redirect to dashboard after successful submission
+      const authUser = getAuth().currentUser
+      if (!authUser) {
+        alert("You must be logged in to donate food.")
+        setIsSubmitting(false)
+        return
+      }
+      const form = new FormData()
+      form.append("foodName", formData.title)
+      form.append("description", formData.description)
+      form.append("location", formData.location)
+      form.append("expiryDate", formData.expiryDate)
+      form.append("pickupInstructions", formData.pickupInstructions)
+      form.append("userId", authUser.uid)
+      if (document.getElementById("foodImage") instanceof HTMLInputElement) {
+        const fileInput = document.getElementById("foodImage") as HTMLInputElement
+        if (fileInput.files && fileInput.files[0]) {
+          form.append("image", fileInput.files[0])
+        }
+      }
+      const res = await fetch("/api/donated-food", {
+        method: "POST",
+        body: form,
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Failed to donate food")
+      }
       router.push("/dashboard")
-    } catch (error) {
-      console.error("Error submitting form:", error)
+    } catch (error: any) {
+      alert(error.message || "Error submitting form")
     } finally {
       setIsSubmitting(false)
     }

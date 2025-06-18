@@ -63,6 +63,16 @@ export default function AdminPage() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.push("/login");
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
   const handleViewUser = (userId: number) => {
     console.log(`View user ${userId}`)
   }
@@ -217,13 +227,6 @@ export default function AdminPage() {
               <div className="p-6 border-b">
                 <h2 className="text-xl font-semibold">User Management</h2>
                 <p className="text-gray-500 mt-1">View and manage all users in the system</p>
-              </div>
-
-              {/* Add New User button */}
-              <div className="p-6 border-b bg-gray-50">
-                <div className="flex justify-end">
-                  <Button variant="default">Add New User</Button>
-                </div>
               </div>
 
               {successMsg && (

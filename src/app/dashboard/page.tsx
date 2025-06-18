@@ -11,31 +11,6 @@ import { onAuthStateChanged } from "firebase/auth"
 import { doc, getDoc } from "firebase/firestore"
 import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar"
 
-// This would typically come from an API or database
-const feedItems = [
-  {
-    id: 1,
-    username: "healthyeats",
-    avatarSrc: "/placeholder.svg?height=40&width=40",
-    imageSrc: "/placeholder.svg?height=400&width=400",
-    description: "Fresh vegetables from my garden. Available for pickup!",
-  },
-  {
-    id: 2,
-    username: "bakerlove",
-    avatarSrc: "/placeholder.svg?height=40&width=40",
-    imageSrc: "/placeholder.svg?height=400&width=400",
-    description: "Excess bread from today's bake. First come, first served!",
-  },
-  {
-    id: 3,
-    username: "fruitfanatic",
-    avatarSrc: "/placeholder.svg?height=40&width=40",
-    imageSrc: "/placeholder.svg?height=400&width=400",
-    description: "Ripe bananas perfect for smoothies or baking. Free to a good home!",
-  },
-]
-
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [user, setUser] = useState<{ displayName: string | null, email: string | null, fullName?: string | null, avatar?: string | null }>({ displayName: null, email: null, avatar: null })
@@ -44,6 +19,8 @@ export default function Dashboard() {
     email: "",
     avatar: ""
   })
+  const [donatedFood, setDonatedFood] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -73,6 +50,32 @@ export default function Dashboard() {
     })
     return () => unsubscribe()
   }, [])
+
+  useEffect(() => {
+    async function fetchDonatedFood() {
+      setLoading(true)
+      try {
+        const res = await fetch("/api/donated-food")
+        if (!res.ok) throw new Error("Failed to fetch donated food")
+        const data = await res.json()
+        setDonatedFood(data.donations || [])
+      } catch (e) {
+        setDonatedFood([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchDonatedFood()
+  }, [])
+
+
+  if (loading || !profileData.fullName) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center text-gray-500 text-lg">Loading dashboard...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -145,29 +148,87 @@ export default function Dashboard() {
         </header>
         <main className="max-w-2xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="space-y-6">
-            {feedItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden">
-                <CardHeader className="p-4 flex items-center space-x-4">
-                  <Avatar>
-                    <AvatarImage src={item.avatarSrc || "/placeholder.svg"} alt={item.username} />
-                    <AvatarFallback>{item.username[0].toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <span className="font-semibold">{item.username}</span>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <img src={item.imageSrc || "/placeholder.svg"} alt="Food" className="w-full h-auto" />
-                  <div className="p-4">
-                    <p className="text-gray-600 mb-4">{item.description}</p>
-                    <div className="flex justify-center">
-                      <Button className="w-full sm:w-auto">
-                        <MessageCircle className="h-5 w-5 mr-2" />
-                        Contact Donator
-                      </Button>
+            {loading ? (
+              <div className="text-center text-gray-500">Loading donated food...</div>
+            ) : donatedFood.length === 0 ? (
+              <div className="text-center text-gray-500">No food has been donated yet.</div>
+            ) : (
+              donatedFood.map((item) => (
+                <Card key={item.id} className="overflow-hidden">
+                  <CardHeader className="p-4 flex items-center space-x-4">
+                    <Avatar>
+                      <AvatarImage src={item.avatar || "/placeholder.svg?height=80&width=80"} alt={item.foodName || "Donator"} />
+                      <AvatarFallback>{item.foodName ? item.foodName[0].toUpperCase() : "?"}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold flex-1 text-center">{item.foodName}</span>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <img src={item.imageUrl || "/placeholder.svg"} alt="Food" className="w-full h-auto" />
+                    <div className="p-4">
+                      <p className="text-gray-600 mb-2">{item.description}</p>
+                      <p className="text-gray-500 text-sm mb-2">Location: {item.location}</p>
+                      <p className="text-gray-500 text-sm mb-2">Expiry: {item.expiryDate || "N/A"}</p>
+                      <p className="text-gray-500 text-sm mb-4">Pickup: {item.pickupInstructions || "N/A"}</p>
+                      <div className="flex justify-center">
+                        {item.userId !== user?.email && item.userId !== auth.currentUser?.uid && (
+                          <Button className="w-full sm:w-auto" onClick={async () => {
+                            // Fetch donor info by userId
+                            const res = await fetch(`/api/users/${item.userId}`);
+                            if (!res.ok) {
+                              alert('Could not fetch donor info.');
+                              return;
+                            }
+                            const donor = await res.json();
+                            if (!donor.phone) {
+                              alert('No phone number available for this donor.');
+                              return;
+                            }
+                            // Open WhatsApp chat
+                            const phone = donor.phone.replace(/[^\d+]/g, '');
+                            const url = `https://wa.me/${phone}`;
+                            window.open(url, '_blank');
+                          }}>
+                            <MessageCircle className="h-5 w-5 mr-2" />
+                            Contact Donator
+                          </Button>
+                        )}
+                        {item.userId === user?.email || item.userId === auth.currentUser?.uid ? (
+                          <Button
+                            className="w-full sm:w-auto ml-2 bg-blue-500 hover:bg-blue-600"
+                            onClick={() => {
+                              // Redirect to edit page for this donation (dynamic route)
+                              window.location.href = `/edit-donation/${item.id}`;
+                            }}
+                          >
+                            Edit
+                          </Button>
+                        ) : null}
+                        {item.userId === user?.email || item.userId === auth.currentUser?.uid ? (
+                          <Button
+                            className="w-full sm:w-auto ml-2 bg-red-500 hover:bg-red-600"
+                            onClick={async () => {
+                              if (confirm('Are you sure you want to delete this donation?')) {
+                                try {
+                                  const res = await fetch(`/api/donated-food?id=${item.id}`, {
+                                    method: 'DELETE',
+                                  });
+                                  if (!res.ok) throw new Error('Failed to delete');
+                                  setDonatedFood((prev) => prev.filter((f) => f.id !== item.id));
+                                } catch (e) {
+                                  alert('Error deleting donation');
+                                }
+                              }
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </main>
       </div>

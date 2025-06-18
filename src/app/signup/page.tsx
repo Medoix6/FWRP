@@ -32,7 +32,7 @@ export default function SignUp() {
     setError("");
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
+      const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value); 
       const user = userCredential.user;
       router.push("/complete-profile");
     } catch (error) {
