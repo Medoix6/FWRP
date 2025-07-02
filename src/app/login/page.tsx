@@ -9,7 +9,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { auth } from "@/app/firebase"
-import { signInWithEmailAndPassword } from "firebase/auth" 
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth" 
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/app/firebase"
 
@@ -18,6 +18,23 @@ export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMsg, setResetMsg] = useState<string | null>(null);
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetMsg(null);
+    if (!resetEmail) {
+      setResetMsg("Please enter your email address.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetMsg("If the email is registered, you will receive an email to reset your password.");
+    } catch (err: any) {
+      setResetMsg(err.message || "Failed to send reset email.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,7 +47,6 @@ export default function Login() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
-      // Fetch user profile from Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid))
       const userData = userDoc.exists() ? userDoc.data() : null
       if (userData && userData.isAdmin) {
@@ -51,6 +67,7 @@ export default function Login() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="email">Email address</Label>
@@ -94,12 +111,6 @@ export default function Login() {
                   Remember me
                 </label>
               </div>
-
-              <div className="text-sm">
-                <a href="#" className="font-medium text-green-600 hover:text-green-500">
-                  Forgot your password?
-                </a>
-              </div>
             </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -110,6 +121,24 @@ export default function Login() {
               </Button>
             </div>
           </form>
+
+          {/* Forgot Password Section - now outside the login form */}
+          <div className="mt-6 border-t pt-6">
+            <h3 className="text-md font-semibold mb-2">Forgot your password?</h3>
+            <form className="flex flex-col gap-3" onSubmit={handlePasswordReset}>
+              <Input
+                type="email"
+                placeholder="Enter your email address"
+                value={resetEmail}
+                onChange={e => setResetEmail(e.target.value)}
+                required
+              />
+              <Button type="submit" variant="outline" className="w-full">Send Password Reset Email</Button>
+            </form>
+            {resetMsg && (
+              <div className={`mt-2 text-sm ${resetMsg.includes('sent') ? 'text-green-600' : 'text-red-600'}`}>{resetMsg}</div>
+            )}
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
@@ -123,5 +152,5 @@ export default function Login() {
       </div>
     </div>
   )
-}
+
 

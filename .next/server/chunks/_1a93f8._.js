@@ -80,10 +80,7 @@ async function PATCH(req, { params }) {
                 pickupInstructions: formData.get("pickupInstructions")
             };
             const image = formData.get("foodImage");
-            if (image && typeof image === "object" && "arrayBuffer" in image) {
-            // Optionally: upload to Cloudinary or other storage here
-            // For now, skip image upload logic (add if needed)
-            }
+            if (image && typeof image === "object" && "arrayBuffer" in image) {}
         } else {
             data = await req.json();
         }

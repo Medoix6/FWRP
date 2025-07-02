@@ -52,8 +52,6 @@ export default function CompleteProfile() {
         return
       }
 
-      // Save profile data to Firestore under users/{uid}
-      // Check if admin flag is set in localStorage (from signup)
       const isAdmin = localStorage.getItem("signup_isAdmin") === "true";
       await setDoc(doc(db, "users", user.uid), {
         name: formData.name, 
@@ -68,10 +66,8 @@ export default function CompleteProfile() {
         uid: user.uid,
         ...(isAdmin ? { isAdmin: true } : {}),
       })
-      // Remove the flag after use
-      localStorage.removeItem("signup_isAdmin")
 
-      // After successful profile completion, redirect to the login page
+      localStorage.removeItem("signup_isAdmin")
       router.push("/login")
     } catch (error) {
       console.error("Error saving profile:", error)

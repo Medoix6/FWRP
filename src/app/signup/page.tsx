@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { auth } from "@/app/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
-export default function SignUp() {
+export default function SignupPage() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const passwordValidation = (password: string) => {
     return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password);
@@ -34,7 +35,11 @@ export default function SignUp() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value); 
       const user = userCredential.user;
-      router.push("/complete-profile");
+      setSuccessMsg("Signup successful! Redirecting...");
+      setTimeout(() => {
+        setSuccessMsg(null);
+        router.push("/complete-profile");
+      }, 1800);
     } catch (error) {
       console.error("Error signing up:", error);
     }
@@ -42,6 +47,11 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-green-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {successMsg && (
+        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg text-lg font-semibold animate-fade-in">
+          {successMsg}
+        </div>
+      )}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
       </div>
@@ -96,6 +106,7 @@ export default function SignUp() {
               </Link>
             </p>
           </div>
+
         </div>
       </div>
     </div>

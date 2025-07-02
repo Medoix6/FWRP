@@ -336,10 +336,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2
 ;
 ;
 ;
-// TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
     apiKey: "AIzaSyB6LYkEpOGtaAsEr3biosqd_QC3YSud9cw",
     authDomain: "fwrp-11fc3.firebaseapp.com",
@@ -422,8 +419,6 @@ function CompleteProfile() {
                 alert("No authenticated user found. Please log in again.");
                 return;
             }
-            // Save profile data to Firestore under users/{uid}
-            // Check if admin flag is set in localStorage (from signup)
             const isAdmin = localStorage.getItem("signup_isAdmin") === "true";
             await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$firebase$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], "users", user.uid), {
                 name: formData.name,
@@ -440,9 +435,7 @@ function CompleteProfile() {
                     isAdmin: true
                 } : {}
             });
-            // Remove the flag after use
             localStorage.removeItem("signup_isAdmin");
-            // After successful profile completion, redirect to the login page
             router.push("/login");
         } catch (error) {
             console.error("Error saving profile:", error);
@@ -460,7 +453,7 @@ function CompleteProfile() {
                         children: "Complete Your Profile"
                     }, void 0, false, {
                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                        lineNumber: 85,
+                        lineNumber: 81,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -468,13 +461,13 @@ function CompleteProfile() {
                         children: "Please provide your address information to complete your profile."
                     }, void 0, false, {
                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                        lineNumber: 86,
+                        lineNumber: 82,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                lineNumber: 84,
+                lineNumber: 80,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -492,7 +485,7 @@ function CompleteProfile() {
                                         children: "Name"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 95,
+                                        lineNumber: 91,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -506,18 +499,18 @@ function CompleteProfile() {
                                             onChange: handleChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/complete-profile/page.tsx",
-                                            lineNumber: 97,
+                                            lineNumber: 93,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 96,
+                                        lineNumber: 92,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                lineNumber: 94,
+                                lineNumber: 90,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -527,7 +520,7 @@ function CompleteProfile() {
                                         children: "Phone Number"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 109,
+                                        lineNumber: 105,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -545,7 +538,7 @@ function CompleteProfile() {
                                                 placeholder: "e.g. +1234567890"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                                lineNumber: 111,
+                                                lineNumber: 107,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -553,19 +546,19 @@ function CompleteProfile() {
                                                 children: "Please make sure this is a valid WhatsApp number with country code."
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                                lineNumber: 122,
+                                                lineNumber: 118,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 110,
+                                        lineNumber: 106,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                lineNumber: 108,
+                                lineNumber: 104,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -575,7 +568,7 @@ function CompleteProfile() {
                                         children: "Address"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 127,
+                                        lineNumber: 123,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -589,18 +582,18 @@ function CompleteProfile() {
                                             onChange: handleChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/complete-profile/page.tsx",
-                                            lineNumber: 129,
+                                            lineNumber: 125,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 128,
+                                        lineNumber: 124,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                lineNumber: 126,
+                                lineNumber: 122,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -610,7 +603,7 @@ function CompleteProfile() {
                                         children: "City"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 141,
+                                        lineNumber: 137,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -624,18 +617,18 @@ function CompleteProfile() {
                                             onChange: handleChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/complete-profile/page.tsx",
-                                            lineNumber: 143,
+                                            lineNumber: 139,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 142,
+                                        lineNumber: 138,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                lineNumber: 140,
+                                lineNumber: 136,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -645,7 +638,7 @@ function CompleteProfile() {
                                         children: "State / Province"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 148,
+                                        lineNumber: 144,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -659,18 +652,18 @@ function CompleteProfile() {
                                             onChange: handleChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/complete-profile/page.tsx",
-                                            lineNumber: 150,
+                                            lineNumber: 146,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 149,
+                                        lineNumber: 145,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                lineNumber: 147,
+                                lineNumber: 143,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -680,7 +673,7 @@ function CompleteProfile() {
                                         children: "Postal Code"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 155,
+                                        lineNumber: 151,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -694,18 +687,18 @@ function CompleteProfile() {
                                             onChange: handleChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/complete-profile/page.tsx",
-                                            lineNumber: 157,
+                                            lineNumber: 153,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 156,
+                                        lineNumber: 152,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                lineNumber: 154,
+                                lineNumber: 150,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -715,7 +708,7 @@ function CompleteProfile() {
                                         children: "Country"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 169,
+                                        lineNumber: 165,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -729,18 +722,18 @@ function CompleteProfile() {
                                             onChange: handleChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/complete-profile/page.tsx",
-                                            lineNumber: 171,
+                                            lineNumber: 167,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 170,
+                                        lineNumber: 166,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                lineNumber: 168,
+                                lineNumber: 164,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -750,7 +743,7 @@ function CompleteProfile() {
                                         children: "Additional Information (Optional)"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 183,
+                                        lineNumber: 179,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -763,18 +756,18 @@ function CompleteProfile() {
                                             onChange: handleChange
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/complete-profile/page.tsx",
-                                            lineNumber: 185,
+                                            lineNumber: 181,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                                        lineNumber: 184,
+                                        lineNumber: 180,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                lineNumber: 182,
+                                lineNumber: 178,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -784,34 +777,34 @@ function CompleteProfile() {
                                     children: "Complete Profile"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/complete-profile/page.tsx",
-                                    lineNumber: 196,
+                                    lineNumber: 192,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                                lineNumber: 195,
+                                lineNumber: 191,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/complete-profile/page.tsx",
-                        lineNumber: 93,
+                        lineNumber: 89,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/complete-profile/page.tsx",
-                    lineNumber: 92,
+                    lineNumber: 88,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/complete-profile/page.tsx",
-                lineNumber: 91,
+                lineNumber: 87,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/complete-profile/page.tsx",
-        lineNumber: 83,
+        lineNumber: 79,
         columnNumber: 5
     }, this);
 }

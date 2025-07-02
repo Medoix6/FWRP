@@ -20,6 +20,7 @@ export default function Dashboard() {
     avatar: ""
   })
   const [donatedFood, setDonatedFood] = useState<any[]>([])
+  const [donorPhones, setDonorPhones] = useState<{ [userId: string]: string }>({});
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -33,7 +34,6 @@ export default function Dashboard() {
         let email = firebaseUser.email || "No Email"
         let fullName = null
         let avatar = ""
-        // Fetch user profile from Firestore
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
         if (userDoc.exists()) {
           const data = userDoc.data()
@@ -59,8 +59,26 @@ export default function Dashboard() {
         if (!res.ok) throw new Error("Failed to fetch donated food")
         const data = await res.json()
         setDonatedFood(data.donations || [])
+
+        // Fetch phone numbers for each donor
+        const userIds = (data.donations || []).map((item: any) => item.userId).filter(Boolean);
+        const uniqueUserIds = Array.from(new Set(userIds)) as string[];
+        const phones: { [userId: string]: string } = {};
+        await Promise.all(uniqueUserIds.map(async (userId: string) => {
+          try {
+            const res = await fetch(`/api/users/${userId}`);
+            if (res.ok) {
+              const donor = await res.json();
+              if (donor.phone) {
+                phones[userId] = donor.phone;
+              }
+            }
+          } catch {}
+        }));
+        setDonorPhones(phones);
       } catch (e) {
         setDonatedFood([])
+        setDonorPhones({});
       } finally {
         setLoading(false)
       }
@@ -166,63 +184,64 @@ export default function Dashboard() {
                     <img src={item.imageUrl || "/placeholder.svg"} alt="Food" className="w-full h-auto" />
                     <div className="p-4">
                       <p className="text-gray-600 mb-2">{item.description}</p>
-                      <p className="text-gray-500 text-sm mb-2">Location: {item.location}</p>
-                      <p className="text-gray-500 text-sm mb-2">Expiry: {item.expiryDate || "N/A"}</p>
-                      <p className="text-gray-500 text-sm mb-4">Pickup: {item.pickupInstructions || "N/A"}</p>
-                      <div className="flex justify-center">
-                        {item.userId !== user?.email && item.userId !== auth.currentUser?.uid && (
-                          <Button className="w-full sm:w-auto" onClick={async () => {
-                            // Fetch donor info by userId
-                            const res = await fetch(`/api/users/${item.userId}`);
-                            if (!res.ok) {
-                              alert('Could not fetch donor info.');
-                              return;
-                            }
-                            const donor = await res.json();
-                            if (!donor.phone) {
-                              alert('No phone number available for this donor.');
-                              return;
-                            }
-                            // Open WhatsApp chat
-                            const phone = donor.phone.replace(/[^\d+]/g, '');
-                            const url = `https://wa.me/${phone}`;
-                            window.open(url, '_blank');
-                          }}>
-                            <MessageCircle className="h-5 w-5 mr-2" />
-                            Contact Donator
-                          </Button>
-                        )}
-                        {item.userId === user?.email || item.userId === auth.currentUser?.uid ? (
-                          <Button
-                            className="w-full sm:w-auto ml-2 bg-blue-500 hover:bg-blue-600"
-                            onClick={() => {
-                              // Redirect to edit page for this donation (dynamic route)
-                              window.location.href = `/edit-donation/${item.id}`;
-                            }}
-                          >
-                            Edit
-                          </Button>
-                        ) : null}
-                        {item.userId === user?.email || item.userId === auth.currentUser?.uid ? (
-                          <Button
-                            className="w-full sm:w-auto ml-2 bg-red-500 hover:bg-red-600"
-                            onClick={async () => {
-                              if (confirm('Are you sure you want to delete this donation?')) {
-                                try {
-                                  const res = await fetch(`/api/donated-food?id=${item.id}`, {
-                                    method: 'DELETE',
-                                  });
-                                  if (!res.ok) throw new Error('Failed to delete');
-                                  setDonatedFood((prev) => prev.filter((f) => f.id !== item.id));
-                                } catch (e) {
-                                  alert('Error deleting donation');
-                                }
+                      {/* Show phone number above location if available */}
+                      {donorPhones[item.userId] && (
+                        <div className="text-sm text-gray-700 mb-2">
+                          <span className="font-semibold text-green-700">Phone:</span> {donorPhones[item.userId]}
+                        </div>
+                      )}
+                      <p className="text-gray-500 text-sm mb-2"><span className="font-semibold text-green-700">Location:</span> {item.location}</p>
+                      <p className="text-gray-500 text-sm mb-2"><span className="font-semibold text-green-700">Expiry:</span> {item.expiryDate || "N/A"}</p>
+                      <p className="text-gray-500 text-sm mb-4"><span className="font-semibold text-green-700">Pickup:</span> {item.pickupInstructions || "N/A"}</p>
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="flex justify-center">
+                          {item.userId !== user?.email && item.userId !== auth.currentUser?.uid && (
+                            <Button className="w-full sm:w-auto" onClick={async () => {
+                              // Open WhatsApp chat
+                              const phone = donorPhones[item.userId]?.replace(/[^\d+]/g, '');
+                              if (!phone) {
+                                alert('No phone number available for this donor.');
+                                return;
                               }
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        ) : null}
+                              const url = `https://wa.me/${phone}`;
+                              window.open(url, '_blank');
+                            }}>
+                              <MessageCircle className="h-5 w-5 mr-2" />
+                              Contact Donator
+                            </Button>
+                          )}
+                          {item.userId === user?.email || item.userId === auth.currentUser?.uid ? (
+                            <Button
+                              className="w-full sm:w-auto ml-2 bg-blue-500 hover:bg-blue-600"
+                              onClick={() => {
+                                // Redirect to edit page for this donation (dynamic route)
+                                window.location.href = `/edit-donation/${item.id}`;
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          ) : null}
+                          {item.userId === user?.email || item.userId === auth.currentUser?.uid ? (
+                            <Button
+                              className="w-full sm:w-auto ml-2 bg-red-500 hover:bg-red-600"
+                              onClick={async () => {
+                                if (confirm('Are you sure you want to delete this donation?')) {
+                                  try {
+                                    const res = await fetch(`/api/donated-food?id=${item.id}`, {
+                                      method: 'DELETE',
+                                    });
+                                    if (!res.ok) throw new Error('Failed to delete');
+                                    setDonatedFood((prev) => prev.filter((f) => f.id !== item.id));
+                                  } catch (e) {
+                                    alert('Error deleting donation');
+                                  }
+                                }
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   </CardContent>

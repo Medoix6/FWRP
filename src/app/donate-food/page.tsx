@@ -29,6 +29,7 @@ export default function DonateFood() {
   })
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -81,7 +82,11 @@ export default function DonateFood() {
         const data = await res.json()
         throw new Error(data.error || "Failed to donate food")
       }
-      router.push("/dashboard")
+      setSuccessMsg("Food donation submitted successfully!");
+      setTimeout(() => {
+        setSuccessMsg(null);
+        router.push("/dashboard");
+      }, 1800);
     } catch (error: any) {
       alert(error.message || "Error submitting form")
     } finally {
@@ -128,6 +133,11 @@ export default function DonateFood() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
+      {successMsg && (
+        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg text-lg font-semibold animate-fade-in">
+          {successMsg}
+        </div>
+      )}
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white">

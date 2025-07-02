@@ -50,8 +50,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       };
       const image = formData.get("foodImage");
       if (image && typeof image === "object" && "arrayBuffer" in image) {
-        // Optionally: upload to Cloudinary or other storage here
-        // For now, skip image upload logic (add if needed)
       }
     } else {
       data = await req.json();
