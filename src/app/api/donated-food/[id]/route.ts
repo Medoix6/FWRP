@@ -25,7 +25,7 @@ const db = getFirestore();
 export async function GET(
   req: NextRequest,
   context: { params: { id: string } }
-): Promise<NextResponse> {
+): Promise<Response> {
   try {
     const { id: donationId } = context.params;
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
