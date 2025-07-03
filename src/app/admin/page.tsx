@@ -5,45 +5,60 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Home, Gift, User, LogOut, Menu, Settings, Shield, Edit2, Trash2 } from "lucide-react"
+import { User, LogOut, Menu, Settings, Shield, Edit2, Trash2 } from "lucide-react"
 import { db } from "@/app/firebase"
 import { collection, getDocs } from "firebase/firestore"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 
+
+// User type for admin dashboard
+type UserType = {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  avatarSrc?: string;
+};
+
 export default function AdminPage() {
-  const router = useRouter()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [users, setUsers] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [editUser, setEditUser] = useState<any | null>(null)
-  const [editLoading, setEditLoading] = useState(false)
-  const [editError, setEditError] = useState<string | null>(null)
-  const [deleteUser, setDeleteUser] = useState<any | null>(null)
-  const [deleteLoading, setDeleteLoading] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [successMsg, setSuccessMsg] = useState<string | null>(null)
-  const [adminAvatar, setAdminAvatar] = useState<string>("")
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [editUser, setEditUser] = useState<UserType | null>(null);
+  const [editLoading, setEditLoading] = useState<boolean>(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [deleteUser, setDeleteUser] = useState<UserType | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [adminAvatar, setAdminAvatar] = useState<string>("");
 
   useEffect(() => {
     const fetchUsers = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
-        const querySnapshot = await getDocs(collection(db, "users"))
-        const usersData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-        setUsers(usersData)
+        const querySnapshot = await getDocs(collection(db, "users"));
+        const usersData: UserType[] = querySnapshot.docs.map((doc) => {
+          const data = doc.data() as UserType;
+          return {
+            id: doc.id,
+            name: data.name || "",
+            email: data.email || "",
+            avatar: data.avatar || "",
+            avatarSrc: data.avatar || "",
+          };
+        });
+        setUsers(usersData);
       } catch (error) {
-        console.error("Error fetching users:", error)
+        console.error("Error fetching users:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchUsers()
-  }, [])
+    };
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     const auth = getAuth();
@@ -64,57 +79,57 @@ export default function AdminPage() {
     return () => unsubscribe();
   }, []);
 
-  const handleViewUser = (userId: number) => {
-    console.log(`View user ${userId}`)
-  }
+
 
   const handleEditUser = (userId: string) => {
-    const user = users.find((u) => u.id === userId)
-    setEditUser(user)
-    setEditError(null)
-    setSuccessMsg(null)
-  }
+    const user = users.find((u) => u.id === userId) || null;
+    setEditUser(user);
+    setEditError(null);
+    setSuccessMsg(null);
+  };
 
   const handleEditUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!editUser) return
-    setEditUser({ ...editUser, [e.target.name]: e.target.value })
-  }
+    if (!editUser) return;
+    const { name, value } = e.target;
+    setEditUser({ ...editUser, [name]: value });
+  };
 
   const handleEditUserSave = async () => {
-    if (!editUser) return
-    setEditLoading(true)
-    setEditError(null)
-    setSuccessMsg(null)
+    if (!editUser) return;
+    setEditLoading(true);
+    setEditError(null);
+    setSuccessMsg(null);
     try {
       const res = await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: editUser.id, name: editUser.name, email: editUser.email }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to update user")
-      setUsers((prev) => prev.map((u) => (u.id === editUser.id ? { ...u, name: editUser.name, email: editUser.email } : u)))
-      setSuccessMsg("User updated successfully.")
-      setEditUser(null)
-    } catch (e: any) {
-      setEditError(e.message)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update user");
+      setUsers((prev) => prev.map((u) => (u.id === editUser.id ? { ...u, name: editUser.name, email: editUser.email } : u)));
+      setSuccessMsg("User updated successfully.");
+      setEditUser(null);
+    } catch (e) {
+      if (e instanceof Error) setEditError(e.message);
+      else setEditError("Unknown error");
     } finally {
-      setEditLoading(false)
+      setEditLoading(false);
     }
-  }
+  };
 
   const handleDeleteUser = (userId: string) => {
-    const user = users.find((u) => u.id === userId)
-    setDeleteUser(user)
-    setDeleteError(null)
-    setSuccessMsg(null)
-  }
+    const user = users.find((u) => u.id === userId) || null;
+    setDeleteUser(user);
+    setDeleteError(null);
+    setSuccessMsg(null);
+  };
 
   const handleDeleteUserConfirm = async () => {
-    if (!deleteUser) return
-    setDeleteLoading(true)
-    setDeleteError(null)
-    setSuccessMsg(null)
+    if (!deleteUser) return;
+    setDeleteLoading(true);
+    setDeleteError(null);
+    setSuccessMsg(null);
     try {
       const auth = getAuth();
       const currentUser = auth.currentUser;
@@ -127,18 +142,19 @@ export default function AdminPage() {
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ id: deleteUser.id }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to delete user")
-      setUsers((prev) => prev.filter((u) => u.id !== deleteUser.id))
-      setSuccessMsg("User deleted successfully.")
-      setDeleteUser(null)
-    } catch (e: any) {
-      setDeleteError(e.message)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete user");
+      setUsers((prev) => prev.filter((u) => u.id !== deleteUser.id));
+      setSuccessMsg("User deleted successfully.");
+      setDeleteUser(null);
+    } catch (e) {
+      if (e instanceof Error) setDeleteError(e.message);
+      else setDeleteError("Unknown error");
     } finally {
-      setDeleteLoading(false)
+      setDeleteLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -378,6 +394,7 @@ export default function AdminPage() {
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
+
     </div>
-  )
+  );
 }
