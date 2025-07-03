@@ -24,10 +24,10 @@ const db = getFirestore();
 // GET donation by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const donationId = params.id;
+    const { id: donationId } = context.params;
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
     const docRef = db.collection("donated_food").doc(donationId);
     const docSnap = await docRef.get();
