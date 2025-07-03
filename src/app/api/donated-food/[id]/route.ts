@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getFirestore } from "firebase-admin/firestore";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import cloudinary from "cloudinary";
