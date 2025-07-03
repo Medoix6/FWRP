@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file://D%3A/FWRP/src/app/admin/loading.tsx"],"sourcesContent":["export default function Loading() {\r\n  return null\r\n}\r\n"],"names":[],"mappings":";;;AAAe,SAAS;IACtB,OAAO;AACT"}},
-    {"offset": {"line": 13, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
-}

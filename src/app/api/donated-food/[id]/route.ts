@@ -24,10 +24,10 @@ const db = getFirestore();
 // GET donation by ID
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
-    const { id: donationId } = context.params;
+    const { id: donationId } = await context.params;
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
     const docRef = db.collection("donated_food").doc(donationId);
     const docSnap = await docRef.get();
@@ -41,10 +41,10 @@ export async function GET(
 // PATCH update donation by ID (supporting multipart/form-data for image upload)
 export async function PATCH(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
-    const { id: donationId } = context.params;
+    const { id: donationId } = await context.params;
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
 
     let data: Record<string, unknown> = {};
@@ -100,10 +100,10 @@ export async function PATCH(
 // DELETE donation by ID
 export async function DELETE(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
-    const { id: donationId } = context.params;
+    const { id: donationId } = await context.params;
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
     await db.collection("donated_food").doc(donationId).delete();
     return NextResponse.json({ success: true });

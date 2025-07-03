@@ -506,7 +506,7 @@ export default function EditProfile() {
         </div>
       )}
 
-      {/* Cloudinary widget script is now loaded globally in _app.tsx for faster availability */}
+
     </div>
   )
 }

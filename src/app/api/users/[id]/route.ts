@@ -15,9 +15,12 @@ if (!getApps().length) {
 
 const db = getFirestore();
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const userId = params.id;
+    const { id: userId } = await context.params;
     if (!userId) return NextResponse.json({ error: "User ID required" }, { status: 400 });
     const userDoc = await db.collection("users").doc(userId).get();
     if (!userDoc.exists) return NextResponse.json({ error: "User not found" }, { status: 404 });

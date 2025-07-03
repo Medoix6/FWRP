@@ -40,7 +40,7 @@ export async function DELETE(req: NextRequest) {
 
     // Check admin
     const adminDoc = await adminDb.collection("users").doc(decodedToken.uid).get();
-    if (!adminDoc.exists || !adminDoc.data().isAdmin) {
+    if (!adminDoc.exists || !(adminDoc.data()?.isAdmin)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

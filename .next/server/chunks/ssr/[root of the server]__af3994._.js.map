@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 63, "column": 0}, "map": {"version":3,"sources":["file://D%3A/FWRP/src/pages/_app.tsx"],"sourcesContent":["import \"../app/globals.css\";\r\nimport Script from \"next/script\";\r\nimport type { AppProps } from \"next/app\";\r\n\r\nexport default function App({ Component, pageProps }: AppProps) {\r\n  return (\r\n    <>\r\n      {/* Preload Cloudinary widget globally for all pages */}\r\n      <Script \r\n        src=\"https://upload-widget.cloudinary.com/global/all.js\" \r\n        strategy=\"beforeInteractive\"\r\n      />\r\n      <Component {...pageProps} />\r\n    </>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;AACA;;;;AAGe,SAAS,IAAI,EAAE,SAAS,EAAE,SAAS,EAAY;IAC5D,qBACE;;0BAEE,qKAAC,uHAAA,CAAA,UAAM;gBACL,KAAI;gBACJ,UAAS;;;;;;0BAEX,qKAAC;gBAAW,GAAG,SAAS;;;;;;;;AAG9B"}},
-    {"offset": {"line": 92, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
-}
