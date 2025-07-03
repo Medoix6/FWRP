@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { User, LogOut, Menu, Settings, Shield, Edit2, Trash2 } from "lucide-react"
@@ -212,7 +212,7 @@ export default function AdminPage() {
                   const auth = getAuth();
                   await auth.signOut();
                   window.location.href = "/login";
-                } catch (err) {
+                } catch {
                   alert("Failed to sign out. Please try again.");
                 }
               }}

@@ -11,5 +11,6 @@
   "/edit-profile/page": "app/edit-profile/page.js",
   "/donate-food/page": "app/donate-food/page.js",
   "/signup/page": "app/signup/page.js",
-  "/learn-more/page": "app/learn-more/page.js"
+  "/learn-more/page": "app/learn-more/page.js",
+  "/admin/page": "app/admin/page.js"
 }
