@@ -31,8 +31,12 @@ export default function Login() {
     try {
       await sendReset(auth, resetEmail);
       setResetMsg("If the email is registered, you will receive an email to reset your password.");
-    } catch (err: any) {
-      setResetMsg(err.message || "Failed to send reset email.");
+    } catch (err) {
+      if (err instanceof Error) {
+        setResetMsg(err.message || "Failed to send reset email.");
+      } else {
+        setResetMsg("Failed to send reset email.");
+      }
     }
   };
 
@@ -52,7 +56,7 @@ export default function Login() {
       } else {
         setError("User not found");
       }
-    } catch (err) {
+    } catch {
       setError("Invalid email or password");
     }
   };
@@ -149,7 +153,7 @@ export default function Login() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/signup" className="font-medium text-green-600 hover:text-green-500">
                 Sign up
               </Link>

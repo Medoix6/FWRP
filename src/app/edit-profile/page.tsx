@@ -88,11 +88,22 @@ export default function EditProfile() {
 
   // Cloudinary Upload Widget handler
   const handleCloudinaryUpload = () => {
-    if (typeof window !== "undefined" && (window as any).cloudinary) {
+    type CloudinaryWidget = {
+      open: () => void;
+    };
+    type CloudinaryWindow = typeof window & {
+      cloudinary?: {
+        createUploadWidget: (
+          options: Record<string, unknown>,
+          callback: (error: unknown, result: unknown) => void
+        ) => CloudinaryWidget;
+      };
+    };
+    if (typeof window !== "undefined" && (window as CloudinaryWindow).cloudinary) {
       setIsAvatarUploading(true);
       setAvatarSuccess(null);
       setErrorMsg(null);
-      const myWidget = (window as any).cloudinary.createUploadWidget(
+      const myWidget = (window as CloudinaryWindow).cloudinary!.createUploadWidget(
         {
           cloudName: 'drig5ndvt',
           uploadPreset: 'avatar_upload',
@@ -101,8 +112,9 @@ export default function EditProfile() {
           folder: 'avatars',
         },
         async (error: unknown, result: unknown) => {
-          if (!error && result && (result as any).event === "success") {
-            const url = (result as any).info.secure_url + '?t=' + Date.now();
+          if (!error && result && typeof result === 'object' && result !== null && (result as { event?: string }).event === "success") {
+            const info = (result as { info?: { secure_url?: string } }).info;
+            const url = (info?.secure_url ?? "") + '?t=' + Date.now();
             setProfileData((prev) => ({ ...prev, avatar: url }));
             try {
               const currentUser = auth.currentUser;
@@ -207,10 +219,19 @@ export default function EditProfile() {
       setCurrentPassword("");
       setNewPassword("");
     } catch (error) {
-      if ((error as any).code === "auth/invalid-credential" || (error as any).message?.includes("auth/invalid-credential")) {
-        setPasswordError("The current password you entered is incorrect.");
+      if (
+        typeof error === 'object' && error !== null &&
+        ('code' in error || 'message' in error)
+      ) {
+        const code = (error as { code?: string }).code;
+        const message = (error as { message?: string }).message;
+        if (code === "auth/invalid-credential" || (typeof message === 'string' && message.includes("auth/invalid-credential"))) {
+          setPasswordError("The current password you entered is incorrect.");
+        } else {
+          setPasswordError(message || "Failed to update password.");
+        }
       } else {
-        setPasswordError((error as Error).message || "Failed to update password.");
+        setPasswordError("Failed to update password.");
       }
     } finally {
       setIsPasswordSubmitting(false);

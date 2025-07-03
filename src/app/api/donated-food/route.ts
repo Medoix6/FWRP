@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       if (userData && userData.avatar) {
         avatar = userData.avatar;
       }
-    } catch (e) {
+    } catch {
     }
 
     const docRef = await db.collection('donated_food').add({
