@@ -1,16 +1,16 @@
-import { auth, db } from "@/app/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "@/app/firebase";
+// import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 import type { User } from "firebase/auth";
 
 export async function getUserProfile(firebaseUser: User) {
-  let displayName = firebaseUser.displayName
+  const displayName = firebaseUser.displayName
     ? firebaseUser.displayName
     : firebaseUser.email
       ? firebaseUser.email.split("@")[0]
       : "No Username";
-  let email = firebaseUser.email || "No Email";
+  const email = firebaseUser.email || "No Email";
   let fullName = null;
   let avatar = "";
   const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));

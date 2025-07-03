@@ -8,7 +8,7 @@ export default function App({ Component, pageProps }: AppProps) {
       {/* Preload Cloudinary widget globally for all pages */}
       <Script 
         src="https://upload-widget.cloudinary.com/global/all.js" 
-        strategy="beforeInteractive"
+        // strategy="beforeInteractive" // See: https://nextjs.org/docs/messages/no-before-interactive-script-outside-document
       />
       <Component {...pageProps} />
     </>

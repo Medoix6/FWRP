@@ -77,13 +77,12 @@ export default function AdminPage() {
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [db, getAuth, onAuthStateChanged]);
 
 
 
   const handleEditUser = (userId: string) => {
-    const user = users.find((u) => u.id === userId) || null;
-    setEditUser(user);
+    setEditUser(users.find((u) => u.id === userId) || null);
     setEditError(null);
     setSuccessMsg(null);
   };
@@ -110,7 +109,7 @@ export default function AdminPage() {
       setUsers((prev) => prev.map((u) => (u.id === editUser.id ? { ...u, name: editUser.name, email: editUser.email } : u)));
       setSuccessMsg("User updated successfully.");
       setEditUser(null);
-    } catch (e) {
+    } catch (e: unknown) {
       if (e instanceof Error) setEditError(e.message);
       else setEditError("Unknown error");
     } finally {
@@ -119,8 +118,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteUser = (userId: string) => {
-    const user = users.find((u) => u.id === userId) || null;
-    setDeleteUser(user);
+    setDeleteUser(users.find((u) => u.id === userId) || null);
     setDeleteError(null);
     setSuccessMsg(null);
   };
@@ -148,7 +146,7 @@ export default function AdminPage() {
       setUsers((prev) => prev.filter((u) => u.id !== deleteUser.id));
       setSuccessMsg("User deleted successfully.");
       setDeleteUser(null);
-    } catch (e) {
+    } catch (e: unknown) {
       if (e instanceof Error) setDeleteError(e.message);
       else setDeleteError("Unknown error");
     } finally {

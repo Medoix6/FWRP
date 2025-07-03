@@ -10,7 +10,7 @@ export async function getUserProfileData(uid: string) {
   return null;
 }
 
-export async function updateUserProfile(uid: string, data: any) {
+export async function updateUserProfile(uid: string, data: { [key: string]: any }) {
   await updateDoc(doc(db, "users", uid), data);
 }
 

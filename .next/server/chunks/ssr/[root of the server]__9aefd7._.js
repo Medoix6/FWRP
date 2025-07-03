@@ -339,13 +339,14 @@ __turbopack_esm__({
     "getUserProfile": (()=>getUserProfile)
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$firebase$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/src/app/firebase.js [app-ssr] (ecmascript)");
+// import { onAuthStateChanged } from "firebase/auth";
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_import__("[project]/node_modules/firebase/firestore/dist/index.mjs [app-ssr] (ecmascript) <module evaluation>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/@firebase/firestore/dist/index.node.mjs [app-ssr] (ecmascript)");
 ;
 ;
 async function getUserProfile(firebaseUser) {
-    let displayName = firebaseUser.displayName ? firebaseUser.displayName : firebaseUser.email ? firebaseUser.email.split("@")[0] : "No Username";
-    let email = firebaseUser.email || "No Email";
+    const displayName = firebaseUser.displayName ? firebaseUser.displayName : firebaseUser.email ? firebaseUser.email.split("@")[0] : "No Username";
+    const email = firebaseUser.email || "No Email";
     let fullName = null;
     let avatar = "";
     const userDoc = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getDoc"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$firebase$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["db"], "users", firebaseUser.uid));

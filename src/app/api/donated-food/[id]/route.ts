@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getFirestore } from "firebase-admin/firestore";
-import { getApp, getApps, initializeApp, cert } from "firebase-admin/app";
+import { getApps, initializeApp, cert } from "firebase-admin/app";
 import cloudinary from "cloudinary";
 // Cloudinary config (make sure these env vars are set)
 cloudinary.v2.config({
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const docSnap = await docRef.get();
     if (!docSnap.exists) return NextResponse.json({ error: "Donation not found" }, { status: 404 });
     return NextResponse.json({ id: docSnap.id, ...docSnap.data() });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const donationId = params.id;
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
 
-    let data: any = {};
+    let data: Record<string, unknown> = {};
     let imageUrl = null;
 
     // Check if the request is multipart/form-data (for image upload)
@@ -87,7 +87,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const docRef = db.collection("donated_food").doc(donationId);
     await docRef.update(data);
     return NextResponse.json({ success: true, imageUrl: data.imageUrl });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
@@ -99,7 +99,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
     await db.collection("donated_food").doc(donationId).delete();
     return NextResponse.json({ success: true });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

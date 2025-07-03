@@ -1,7 +1,7 @@
 // API route to get user public info (including phone) by userId
 import { NextRequest, NextResponse } from "next/server";
 import { getFirestore } from "firebase-admin/firestore";
-import { getApp, getApps, initializeApp, cert } from "firebase-admin/app";
+import { getApps, initializeApp, cert } from "firebase-admin/app";
 
 if (!getApps().length) {
   initializeApp({
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (!userDoc.exists) return NextResponse.json({ error: "User not found" }, { status: 404 });
     const { name, phone, avatar } = userDoc.data() || {};
     return NextResponse.json({ name, phone, avatar });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getApp, getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { v2 as cloudinary } from 'cloudinary';
 
 
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     let message = 'Server error';
     if (error && typeof error === 'object' && 'message' in error) {
-      message = (error as any).message;
+      message = (error as unknown as { message?: string }).message ?? 'Server error';
     }
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -91,7 +91,7 @@ export async function GET() {
   } catch (error) {
     let message = 'Server error';
     if (error && typeof error === 'object' && 'message' in error) {
-      message = (error as any).message;
+      message = (error as unknown as { message?: string }).message ?? 'Server error';
     }
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -110,7 +110,7 @@ export async function DELETE(req: NextRequest) {
   } catch (error) {
     let message = 'Server error';
     if (error && typeof error === 'object' && 'message' in error) {
-      message = (error as any).message;
+      message = (error as unknown as { message?: string }).message ?? 'Server error';
     }
     return NextResponse.json({ error: message }, { status: 500 });
   }

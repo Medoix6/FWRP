@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings } from "lucide-react"
 import Link from "next/link"
-import { auth, db } from "@/app/firebase"
+import { auth } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { fetchDonationById } from "@/controllers/donationController"
 import { getUserProfile } from "@/controllers/dashboardController"
@@ -32,7 +32,7 @@ export default function EditDonation() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<{ displayName: string | null, email: string | null, fullName?: string | null, avatar?: string | null }>({ displayName: null, email: null, avatar: null })
+  // Removed unused user state
   const [profileData, setProfileData] = useState({
     fullName: "",
     email: "",
@@ -40,10 +40,10 @@ export default function EditDonation() {
   })
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return null;
 
   // Load existing donation data from API
   useEffect(() => {
+    if (!mounted) return;
     const loadDonation = async () => {
       try {
         const donation = await fetchDonationById(donationId);
@@ -63,14 +63,14 @@ export default function EditDonation() {
       }
     };
     if (donationId) loadDonation();
-  }, [donationId, router]);
+  }, [donationId, router, mounted]);
 
   // Fetch user profile (same as dashboard)
   useEffect(() => {
+    if (!mounted) return;
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const profile = await getUserProfile(firebaseUser);
-        setUser(profile);
         setProfileData({
           fullName: profile.fullName || profile.displayName,
           email: profile.email,
@@ -81,7 +81,7 @@ export default function EditDonation() {
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [mounted]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -105,7 +105,7 @@ export default function EditDonation() {
     setIsSubmitting(true);
     try {
       let body: FormData | string;
-      let headers: Record<string, string> = {};
+      const headers: Record<string, string> = {};
       if (imageFile) {
         body = new FormData();
         body.append("title", formData.title);
@@ -144,17 +144,7 @@ export default function EditDonation() {
     }
   } 
 
-  const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this donation? This action cannot be undone.")) {
-      try {
-        const res = await fetch(`/api/donated-food/${donationId}`, { method: "DELETE" })
-        if (!res.ok) throw new Error("Failed to delete donation")
-        router.push("/dashboard")
-      } catch (error) {
-        console.error("Error deleting donation:", error)
-      }
-    }
-  }
+  // Removed unused handleDelete
 
   if (isLoading) {
     return (
@@ -335,6 +325,7 @@ export default function EditDonation() {
                   <div className="mt-4">
                     <p className="text-sm text-gray-500 mb-2">Current Image:</p>
                     <div className="relative w-full h-64 bg-gray-100 rounded-md overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={imagePreview || "/placeholder.svg"}
                         alt="Food preview"
