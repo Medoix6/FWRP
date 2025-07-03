@@ -23,7 +23,7 @@ const db = getFirestore();
 
 // GET donation by ID
 export async function GET(
-  req: NextRequest,
+  request: Request,
   context: { params: { id: string } }
 ): Promise<Response> {
   try {
@@ -40,7 +40,7 @@ export async function GET(
 
 // PATCH update donation by ID (supporting multipart/form-data for image upload)
 export async function PATCH(
-  req: NextRequest,
+  request: Request,
   context: { params: { id: string } }
 ): Promise<Response> {
   try {
@@ -51,9 +51,9 @@ export async function PATCH(
     let imageUrl = null;
 
     // Check if the request is multipart/form-data (for image upload)
-    const contentType = req.headers.get("content-type") || "";
+    const contentType = request.headers.get("content-type") || "";
     if (contentType.includes("multipart/form-data")) {
-      const formData = await req.formData();
+      const formData = await request.formData();
       data = {
         foodName: formData.get("title"),
         description: formData.get("description"),
@@ -84,7 +84,7 @@ export async function PATCH(
         }
       }
     } else {
-      data = await req.json();
+      data = await request.json();
     }
 
     // Remove undefined fields
@@ -99,7 +99,7 @@ export async function PATCH(
 
 // DELETE donation by ID
 export async function DELETE(
-  req: NextRequest,
+  request: Request,
   context: { params: { id: string } }
 ): Promise<Response> {
   try {
