@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { getFirestore } from "firebase-admin/firestore";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
@@ -23,7 +22,10 @@ if (!getApps().length) {
 const db = getFirestore();
 
 // GET donation by ID
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+): Promise<NextResponse> {
   try {
     const donationId = params.id;
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
