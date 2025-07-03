@@ -8,8 +8,8 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
 import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar"
+import { getUserProfile, fetchDonatedFood } from "@/controllers/dashboardController"
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -26,40 +26,27 @@ export default function Dashboard() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        let displayName = firebaseUser.displayName
-          ? firebaseUser.displayName
-          : firebaseUser.email
-            ? firebaseUser.email.split("@")[0]
-            : "No Username"
-        let email = firebaseUser.email || "No Email"
-        let fullName = null
-        let avatar = ""
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
-        if (userDoc.exists()) {
-          const data = userDoc.data()
-          fullName = data.name || null
-          avatar = data.avatar || ""
-        }
-        setUser({ displayName, email, fullName, avatar })
+        const profile = await getUserProfile(firebaseUser);
+        setUser(profile);
         setProfileData({
-          fullName: fullName || displayName,
-          email: email,
-          avatar: avatar
-        })
+          fullName: profile.fullName || profile.displayName,
+          email: profile.email,
+          avatar: profile.avatar
+        });
+      } else {
+        // Not authenticated, redirect to login
+        window.location.href = "/login";
       }
-    })
-    return () => unsubscribe()
-  }, [])
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
-    async function fetchDonatedFood() {
-      setLoading(true)
+    async function fetchData() {
+      setLoading(true);
       try {
-        const res = await fetch("/api/donated-food")
-        if (!res.ok) throw new Error("Failed to fetch donated food")
-        const data = await res.json()
-        setDonatedFood(data.donations || [])
-
+        const data = await fetchDonatedFood();
+        setDonatedFood(data.donations || []);
         // Fetch phone numbers for each donor
         const userIds = (data.donations || []).map((item: any) => item.userId).filter(Boolean);
         const uniqueUserIds = Array.from(new Set(userIds)) as string[];
@@ -77,14 +64,14 @@ export default function Dashboard() {
         }));
         setDonorPhones(phones);
       } catch (e) {
-        setDonatedFood([])
+        setDonatedFood([]);
         setDonorPhones({});
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    fetchDonatedFood()
-  }, [])
+    fetchData();
+  }, []);
 
 
   if (loading || !profileData.fullName) {
@@ -147,11 +134,20 @@ export default function Dashboard() {
           </div>
 
           <div className="p-4 border-t">
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href="/login">
-                <LogOut className="h-5 w-5 mr-3" />
-                Sign out
-              </Link>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={async () => {
+                try {
+                  await auth.signOut();
+                  window.location.href = "/login";
+                } catch (err) {
+                  alert("Failed to sign out. Please try again.");
+                }
+              }}
+            >
+              <LogOut className="h-5 w-5 mr-3" />
+              Sign out
             </Button>
           </div>
         </div>

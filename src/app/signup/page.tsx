@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -56,9 +57,19 @@ export default function SignupPage() {
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Back Button - top left, inside the form card */}
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => router.push("/")}
+            className="absolute top-4 left-4 flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
+          </Button>
+          <form className="space-y-6 mt-8" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="email">Email address</Label>
               <div className="mt-1">

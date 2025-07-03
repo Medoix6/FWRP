@@ -1,3 +1,15 @@
 {
-  "/login/page": "app/login/page.js"
+  "/dashboard/page": "app/dashboard/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/api/donated-food/route": "app/api/donated-food/route.js",
+  "/api/users/[id]/route": "app/api/users/[id]/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/edit-donation/[id]/page": "app/edit-donation/[id]/page.js",
+  "/api/donated-food/[id]/route": "app/api/donated-food/[id]/route.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/edit-profile/page": "app/edit-profile/page.js",
+  "/donate-food/page": "app/donate-food/page.js",
+  "/signup/page": "app/signup/page.js",
+  "/learn-more/page": "app/learn-more/page.js"
 }

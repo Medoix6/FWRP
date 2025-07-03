@@ -3,15 +3,15 @@
 import type React from "react"
 
 import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { auth } from "@/app/firebase"
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth" 
-import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/app/firebase"
+import { loginUser, sendReset } from "@/controllers/authController"
 
 export default function Login() {
   const router = useRouter()
@@ -29,7 +29,7 @@ export default function Login() {
       return;
     }
     try {
-      await sendPasswordResetEmail(auth, resetEmail);
+      await sendReset(auth, resetEmail);
       setResetMsg("If the email is registered, you will receive an email to reset your password.");
     } catch (err: any) {
       setResetMsg(err.message || "Failed to send reset email.");
@@ -37,27 +37,25 @@ export default function Login() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-
+    e.preventDefault();
+    setError("");
     if (!email || !password) {
-      setError("Please enter both email and password")
-      return
+      setError("Please enter both email and password");
+      return;
     }
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const user = userCredential.user
-      const userDoc = await getDoc(doc(db, "users", user.uid))
-      const userData = userDoc.exists() ? userDoc.data() : null
+      const userData = await loginUser(auth, db, email, password);
       if (userData && userData.isAdmin) {
-        router.push("/admin")
+        router.push("/admin");
+      } else if (userData) {
+        router.push("/dashboard");
       } else {
-        router.push("/dashboard")
+        setError("User not found");
       }
     } catch (err) {
-      setError("Invalid email or password")
+      setError("Invalid email or password");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-green-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -65,10 +63,19 @@ export default function Login() {
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Login to your account</h2>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Back Button - top left, inside the form card */}
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => router.push("/")}
+            className="absolute top-4 left-4 flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
+          </Button>
+          <form className="space-y-6 mt-8" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="email">Email address</Label>
               <div className="mt-1">
@@ -152,5 +159,4 @@ export default function Login() {
       </div>
     </div>
   )
-
-
+  }

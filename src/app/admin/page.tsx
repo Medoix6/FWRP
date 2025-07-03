@@ -58,20 +58,11 @@ export default function AdminPage() {
         }
       } else {
         setAdminAvatar("");
+        window.location.href = "/login";
       }
     });
     return () => unsubscribe();
   }, []);
-
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.push("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
 
   const handleViewUser = (userId: number) => {
     console.log(`View user ${userId}`)
@@ -197,11 +188,21 @@ export default function AdminPage() {
           </div>
 
           <div className="p-4 border-t">
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href="/login">
-                <LogOut className="h-5 w-5 mr-3" />
-                Sign out
-              </Link>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={async () => {
+                try {
+                  const auth = getAuth();
+                  await auth.signOut();
+                  window.location.href = "/login";
+                } catch (err) {
+                  alert("Failed to sign out. Please try again.");
+                }
+              }}
+            >
+              <LogOut className="h-5 w-5 mr-3" />
+              Sign out
             </Button>
           </div>
         </div>

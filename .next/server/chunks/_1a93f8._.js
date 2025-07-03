@@ -18,9 +18,17 @@ __turbopack_esm__({
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/server.js [app-route] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__ = __turbopack_import__("[externals]/firebase-admin/firestore [external] (firebase-admin/firestore, esm_import)");
 var __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__ = __turbopack_import__("[externals]/firebase-admin/app [external] (firebase-admin/app, esm_import)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$cloudinary$2f$cloudinary$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/cloudinary/cloudinary.js [app-route] (ecmascript)");
 ;
 ;
 ;
+;
+// Cloudinary config (make sure these env vars are set)
+__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$cloudinary$2f$cloudinary$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].v2.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 if (!(0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["getApps"])().length) {
     (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["initializeApp"])({
         credential: (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$29$__["cert"])({
@@ -80,7 +88,36 @@ async function PATCH(req, { params }) {
                 pickupInstructions: formData.get("pickupInstructions")
             };
             const image = formData.get("foodImage");
-            if (image && typeof image === "object" && "arrayBuffer" in image) {}
+            if (image && typeof image === "object" && "arrayBuffer" in image) {
+                // Upload to Cloudinary
+                const buffer = Buffer.from(await image.arrayBuffer());
+                const uploadResult = await __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$cloudinary$2f$cloudinary$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].v2.uploader.upload_stream({
+                    folder: "donated_food",
+                    resource_type: "image"
+                }, async (error, result)=>{
+                    if (error) throw error;
+                    imageUrl = result.secure_url;
+                });
+                // Use a Promise to wait for upload_stream
+                await new Promise((resolve, reject)=>{
+                    const stream = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$cloudinary$2f$cloudinary$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].v2.uploader.upload_stream({
+                        folder: "donated_food",
+                        resource_type: "image"
+                    }, (error, result)=>{
+                        if (error) return reject(error);
+                        if (result && result.secure_url) {
+                            imageUrl = result.secure_url;
+                            resolve(result);
+                        } else {
+                            reject(new Error("No result from Cloudinary upload"));
+                        }
+                    });
+                    stream.end(buffer);
+                });
+                if (imageUrl) {
+                    data.imageUrl = imageUrl;
+                }
+            }
         } else {
             data = await req.json();
         }
@@ -89,7 +126,8 @@ async function PATCH(req, { params }) {
         const docRef = db.collection("donated_food").doc(donationId);
         await docRef.update(data);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            success: true
+            success: true,
+            imageUrl: data.imageUrl
         });
     } catch (e) {
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({

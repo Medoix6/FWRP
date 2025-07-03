@@ -14,12 +14,10 @@ import Link from "next/link"
 import { useEffect } from "react"
 import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { doc, getDoc, updateDoc } from "firebase/firestore"
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage"
+import { getUserProfileData, updateUserProfile, uploadAvatar } from "@/controllers/profileController"
 import Script from "next/script"
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
 
-const storage = getStorage();
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 
 export default function EditProfile() {
@@ -29,6 +27,13 @@ export default function EditProfile() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [cloudinaryWidgetOpen, setCloudinaryWidgetOpen] = useState(false)
+  const [cloudinaryReady, setCloudinaryReady] = useState(true)
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false)
+  const [avatarSuccess, setAvatarSuccess] = useState<string | null>(null)
+
+  // Assume Cloudinary widget is ready (forcibly enable button)
+  // If you want to keep the robust check, comment out the next line and restore the useEffect above
+  // useEffect(() => { ... });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -36,10 +41,9 @@ export default function EditProfile() {
         setUser({
           displayName: firebaseUser.displayName || "No Username",
           email: firebaseUser.email || "No Email"
-        })
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
-        if (userDoc.exists()) {
-          const data = userDoc.data()
+        });
+        const data = await getUserProfileData(firebaseUser.uid);
+        if (data) {
           setProfileData({
             fullName: data.name || "",
             email: data.email || "",
@@ -50,17 +54,18 @@ export default function EditProfile() {
             postalCode: data.postalCode || "",
             bio: data.bio || "",
             avatar: data.avatar || "",
-          })
-          setIsAdmin(!!data.isAdmin)
+          });
+          setIsAdmin(!!data.isAdmin);
         } else {
-          setIsAdmin(false)
+          setIsAdmin(false);
         }
       } else {
-        setIsAdmin(false)
+        setIsAdmin(false);
+        window.location.href = "/login";
       }
-    })
-    return () => unsubscribe()
-  }, [])
+    });
+    return () => unsubscribe();
+  }, []);
 
   const [profileData, setProfileData] = useState({
     fullName: "",
@@ -86,8 +91,10 @@ export default function EditProfile() {
 
   // Cloudinary Upload Widget handler
   const handleCloudinaryUpload = () => {
-    setCloudinaryWidgetOpen(true);
     if (typeof window !== "undefined" && (window as any).cloudinary) {
+      setIsAvatarUploading(true);
+      setAvatarSuccess(null);
+      setErrorMsg(null);
       const myWidget = (window as any).cloudinary.createUploadWidget(
         {
           cloudName: 'drig5ndvt',
@@ -98,23 +105,28 @@ export default function EditProfile() {
         },
         async (error: any, result: any) => {
           if (!error && result && result.event === "success") {
-            const url = result.info.secure_url;
+            const url = result.info.secure_url + '?t=' + Date.now();
             setProfileData((prev) => ({ ...prev, avatar: url }));
             try {
               const currentUser = auth.currentUser;
               if (!currentUser) throw new Error("No authenticated user");
-              const userRef = doc(db, "users", currentUser.uid);
-              // Save only the avatar URL using UID
-              await updateDoc(userRef, { avatar: url });
+              await updateUserProfile(currentUser.uid, { avatar: url });
               setErrorMsg(null);
+              setAvatarSuccess("Avatar updated successfully!");
             } catch (err: any) {
               setErrorMsg("Failed to update avatar in database.");
             }
+          } else if (error) {
+            setErrorMsg("Cloudinary upload failed. Please try again.");
           }
           setCloudinaryWidgetOpen(false);
+          setIsAvatarUploading(false);
         }
       );
       myWidget.open();
+      setCloudinaryWidgetOpen(true);
+    } else {
+      setErrorMsg("Cloudinary widget failed to load. Please try again later.");
     }
   };
 
@@ -123,8 +135,7 @@ export default function EditProfile() {
     try {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("No authenticated user");
-      const userRef = doc(db, "users", currentUser.uid);
-      await updateDoc(userRef, { avatar: "" });
+      await updateUserProfile(currentUser.uid, { avatar: "" });
       setErrorMsg(null);
     } catch (err: any) {
       setErrorMsg("Failed to reset avatar in database.");
@@ -144,9 +155,7 @@ export default function EditProfile() {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("No authenticated user");
       let avatarUrl = profileData.avatar;
-      const userRef = doc(db, "users", currentUser.uid);
-      console.log("Updating Firestore profile...");
-      await updateDoc(userRef, {
+      await updateUserProfile(currentUser.uid, {
         name: profileData.fullName,
         email: profileData.email,
         phone: profileData.phone,
@@ -159,7 +168,7 @@ export default function EditProfile() {
       });
       setProfileData((prev) => ({ ...prev, avatar: avatarUrl }));
       setIsEditMode(false);
-      console.log("Profile updated successfully.");
+      router.push("/dashboard");
     } catch (error: any) {
       console.error("Error updating profile:", error);
       setErrorMsg(error?.message || "Failed to update profile. Please try again.");
@@ -176,7 +185,6 @@ export default function EditProfile() {
   const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false)
 
   const passwordValidation = (password: string) => {
-    // At least 6 characters, 1 capital letter, 1 number
     return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password);
   };
 
@@ -274,11 +282,20 @@ export default function EditProfile() {
           </div>
 
           <div className="p-4 border-t">
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href="/login">
-                <LogOut className="h-5 w-5 mr-3" />
-                Sign out
-              </Link>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={async () => {
+                try {
+                  await auth.signOut();
+                  router.push("/login");
+                } catch (err) {
+                  setErrorMsg("Failed to sign out. Please try again.");
+                }
+              }}
+            >
+              <LogOut className="h-5 w-5 mr-3" />
+              Sign out
             </Button>
           </div>
         </div>
@@ -312,8 +329,18 @@ export default function EditProfile() {
                   </Avatar>
                   {isEditMode && (
                     <>
-                      <Button type="button" onClick={handleCloudinaryUpload} className="ml-4 bg-blue-600 text-white">Upload Avatar</Button>
-                      <Button type="button" onClick={handleResetAvatar} className="ml-2 bg-gray-200 text-gray-800">Reset Avatar</Button>
+                      <Button
+                        type="button"
+                        onClick={handleCloudinaryUpload}
+                        className="ml-4 bg-blue-600 text-white"
+                        disabled={!cloudinaryReady || isAvatarUploading}
+                        title={cloudinaryReady ? "Upload Avatar" : "Cloudinary widget is not ready yet"}
+                      >
+                        {isAvatarUploading ? (
+                          <span className="flex items-center"><span className="animate-spin mr-2 h-4 w-4 border-b-2 border-white rounded-full"></span>Uploading...</span>
+                        ) : "Upload Avatar"}
+                      </Button>
+                      <Button type="button" onClick={handleResetAvatar} className="ml-2 bg-gray-200 text-gray-800" disabled={isAvatarUploading}>Reset Avatar</Button>
                     </>
                   )}
                 </div>
@@ -387,6 +414,9 @@ export default function EditProfile() {
               {errorMsg && (
                 <div className="mb-4 text-red-600 font-semibold">{errorMsg}</div>
               )}
+              {avatarSuccess && (
+                <div className="mb-4 text-green-600 font-semibold">{avatarSuccess}</div>
+              )}
 
               <div className="pt-4 flex flex-col gap-2">
                 <Button type="button" variant="outline" onClick={() => setShowPasswordFields((v) => !v)}>
@@ -458,7 +488,7 @@ export default function EditProfile() {
         </div>
       )}
 
-      <Script src="https://upload-widget.cloudinary.com/global/all.js" strategy="beforeInteractive" />
+      {/* Cloudinary widget script is now loaded globally in _app.tsx for faster availability */}
     </div>
   )
 }

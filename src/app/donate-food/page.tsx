@@ -1,4 +1,14 @@
+
 "use client"
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (!firebaseUser) {
+        window.location.href = "/login";
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
 import type React from "react"
 
@@ -188,11 +198,20 @@ export default function DonateFood() {
           </div>
 
           <div className="p-4 border-t">
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href="/login">
-                <LogOut className="h-5 w-5 mr-3" />
-                Sign out
-              </Link>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={async () => {
+                try {
+                  await auth.signOut();
+                  window.location.href = "/login";
+                } catch (err) {
+                  alert("Failed to sign out. Please try again.");
+                }
+              }}
+            >
+              <LogOut className="h-5 w-5 mr-3" />
+              Sign out
             </Button>
           </div>
         </div>

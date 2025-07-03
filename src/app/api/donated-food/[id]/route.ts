@@ -1,6 +1,14 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { getFirestore } from "firebase-admin/firestore";
 import { getApp, getApps, initializeApp, cert } from "firebase-admin/app";
+import cloudinary from "cloudinary";
+// Cloudinary config (make sure these env vars are set)
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 if (!getApps().length) {
   initializeApp({
@@ -50,6 +58,25 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       };
       const image = formData.get("foodImage");
       if (image && typeof image === "object" && "arrayBuffer" in image) {
+        const buffer = Buffer.from(await image.arrayBuffer());
+        await new Promise((resolve, reject) => {
+          const stream = cloudinary.v2.uploader.upload_stream(
+            { folder: "donated_food", resource_type: "image" },
+            (error, result) => {
+              if (error) return reject(error);
+              if (result && result.secure_url) {
+                imageUrl = result.secure_url;
+                resolve(result);
+              } else {
+                reject(new Error("No result from Cloudinary upload"));
+              }
+            }
+          );
+          stream.end(buffer);
+        });
+        if (imageUrl) {
+          data.imageUrl = imageUrl;
+        }
       }
     } else {
       data = await req.json();
@@ -59,7 +86,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     Object.keys(data).forEach((k) => (data[k] === undefined ? delete data[k] : undefined));
     const docRef = db.collection("donated_food").doc(donationId);
     await docRef.update(data);
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, imageUrl: data.imageUrl });
   } catch (e) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

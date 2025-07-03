@@ -1,6 +1,3 @@
-// This file implements the edit donation page for a specific donation ID using dynamic routing.
-// It is a direct copy of the previous edit-donation/page.tsx, but adapted for the [id] dynamic route.
-
 "use client"
 
 import type React from "react"
@@ -16,12 +13,13 @@ import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings } from "lucide-reac
 import Link from "next/link"
 import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
+import { fetchDonationById } from "@/controllers/donationController"
+import { getUserProfile } from "@/controllers/dashboardController"
 
 export default function EditDonation() {
   const router = useRouter()
   const params = useParams()
-  const donationId = params.id as string
+  const donationId = (params?.id ?? "") as string
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
@@ -40,61 +38,50 @@ export default function EditDonation() {
     email: "",
     avatar: ""
   })
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
 
   // Load existing donation data from API
   useEffect(() => {
     const loadDonation = async () => {
       try {
-        const response = await fetch(`/api/donated-food/${donationId}`)
-        if (!response.ok) throw new Error("Donation not found")
-        const donation = await response.json()
+        const donation = await fetchDonationById(donationId);
         setFormData({
           title: donation.foodName || "",
           description: donation.description || "",
           location: donation.location || "",
           expiryDate: donation.expiryDate || "",
           pickupInstructions: donation.pickupInstructions || "",
-        })
-        setImagePreview(donation.imageUrl || "/placeholder.svg")
+        });
+        setImagePreview(donation.imageUrl || "/placeholder.svg");
       } catch (error) {
-        console.error("Error loading donation:", error)
-        router.push("/dashboard")
+        console.error("Error loading donation:", error);
+        router.push("/dashboard");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    if (donationId) loadDonation()
-  }, [donationId, router])
+    };
+    if (donationId) loadDonation();
+  }, [donationId, router]);
 
   // Fetch user profile (same as dashboard)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        let displayName = firebaseUser.displayName
-          ? firebaseUser.displayName
-          : firebaseUser.email
-            ? firebaseUser.email.split("@")[0]
-            : "No Username"
-        let email = firebaseUser.email || "No Email"
-        let fullName = null
-        let avatar = ""
-        // Fetch user profile from Firestore
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
-        if (userDoc.exists()) {
-          const data = userDoc.data()
-          fullName = data.name || null
-          avatar = data.avatar || ""
-        }
-        setUser({ displayName, email, fullName, avatar })
+        const profile = await getUserProfile(firebaseUser);
+        setUser(profile);
         setProfileData({
-          fullName: fullName || displayName,
-          email: email,
-          avatar: avatar
-        })
+          fullName: profile.fullName || profile.displayName,
+          email: profile.email,
+          avatar: profile.avatar
+        });
+      } else {
+        window.location.href = "/login";
       }
-    })
-    return () => unsubscribe()
-  }, [])
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -114,19 +101,19 @@ export default function EditDonation() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
     try {
-      let body: FormData | string
-      let headers: Record<string, string> = {}
+      let body: FormData | string;
+      let headers: Record<string, string> = {};
       if (imageFile) {
-        body = new FormData()
-        body.append("title", formData.title)
-        body.append("description", formData.description)
-        body.append("location", formData.location)
-        body.append("expiryDate", formData.expiryDate)
-        body.append("pickupInstructions", formData.pickupInstructions)
-        body.append("foodImage", imageFile)
+        body = new FormData();
+        body.append("title", formData.title);
+        body.append("description", formData.description);
+        body.append("location", formData.location);
+        body.append("expiryDate", formData.expiryDate);
+        body.append("pickupInstructions", formData.pickupInstructions);
+        body.append("foodImage", imageFile);
       } else {
         body = JSON.stringify({
           title: formData.title,
@@ -134,22 +121,28 @@ export default function EditDonation() {
           location: formData.location,
           expiryDate: formData.expiryDate,
           pickupInstructions: formData.pickupInstructions,
-        })
-        headers["Content-Type"] = "application/json"
+        });
+        headers["Content-Type"] = "application/json";
       }
       const res = await fetch(`/api/donated-food/${donationId}`, {
         method: "PATCH",
         body,
         headers,
-      })
-      if (!res.ok) throw new Error("Failed to update donation")
-      router.push("/dashboard")
+      });
+      if (!res.ok) throw new Error("Failed to update donation");
+      // Optionally, fetch the updated donation to get the new image URL
+      // const updated = await res.json();
+      // setImagePreview(updated.imageUrl || "/placeholder.svg");
+      setImageFile(null);
+      // router.push("/dashboard");
+      // Instead of redirecting immediately, reload the donation to update preview
+      setTimeout(() => router.push("/dashboard"), 500);
     } catch (error) {
-      console.error("Error updating donation:", error)
+      console.error("Error updating donation:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  } 
 
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this donation? This action cannot be undone.")) {
