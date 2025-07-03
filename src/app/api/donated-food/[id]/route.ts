@@ -39,9 +39,12 @@ export async function GET(
 }
 
 // PATCH update donation by ID (supporting multipart/form-data for image upload)
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  context: { params: { id: string } }
+): Promise<Response> {
   try {
-    const donationId = params.id;
+    const { id: donationId } = context.params;
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
 
     let data: Record<string, unknown> = {};
@@ -95,9 +98,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE donation by ID
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  context: { params: { id: string } }
+): Promise<Response> {
   try {
-    const donationId = params.id;
+    const { id: donationId } = context.params;
     if (!donationId) return NextResponse.json({ error: "Donation ID required" }, { status: 400 });
     await db.collection("donated_food").doc(donationId).delete();
     return NextResponse.json({ success: true });
