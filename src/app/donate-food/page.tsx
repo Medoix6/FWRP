@@ -1,6 +1,56 @@
 
 "use client"
 
+import type React from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings } from "lucide-react"
+import Link from "next/link"
+import { auth, db } from "@/app/firebase"
+import { onAuthStateChanged, getAuth } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
+// import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar" // Unused import
+
+
+interface FormDataType {
+  title: string;
+  description: string;
+  location: string;
+  expiryDate: string;
+  pickupInstructions: string;
+}
+
+interface ProfileDataType {
+  fullName: string;
+  email: string;
+  avatar: string;
+}
+
+export default function DonateFood() {
+  const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [formData, setFormData] = useState<FormDataType>({
+    title: "",
+    description: "",
+    location: "",
+    expiryDate: "",
+    pickupInstructions: "",
+  });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [profileData, setProfileData] = useState<ProfileDataType>({
+    fullName: "",
+    email: "",
+    avatar: ""
+  });
+
+  // Auth guard useEffect (moved inside component)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
@@ -10,136 +60,90 @@
     return () => unsubscribe();
   }, []);
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings } from "lucide-react"
-import Link from "next/link"
-import { useEffect } from "react"
-import { auth, db } from "@/app/firebase"
-import { onAuthStateChanged, getAuth } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
-import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar"
-
-export default function DonateFood() {
-  const router = useRouter()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    location: "",
-    expiryDate: "",
-    pickupInstructions: "",
-  })
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [successMsg, setSuccessMsg] = useState<string | null>(null)
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const authUser = getAuth().currentUser
+      const authUser = getAuth().currentUser;
       if (!authUser) {
-        alert("You must be logged in to donate food.")
-        setIsSubmitting(false)
-        return
+        alert("You must be logged in to donate food.");
+        setIsSubmitting(false);
+        return;
       }
-      const form = new FormData()
-      form.append("foodName", formData.title)
-      form.append("description", formData.description)
-      form.append("location", formData.location)
-      form.append("expiryDate", formData.expiryDate)
-      form.append("pickupInstructions", formData.pickupInstructions)
-      form.append("userId", authUser.uid)
-      if (document.getElementById("foodImage") instanceof HTMLInputElement) {
-        const fileInput = document.getElementById("foodImage") as HTMLInputElement
-        if (fileInput.files && fileInput.files[0]) {
-          form.append("image", fileInput.files[0])
-        }
+      const form = new FormData();
+      form.append("foodName", formData.title);
+      form.append("description", formData.description);
+      form.append("location", formData.location);
+      form.append("expiryDate", formData.expiryDate);
+      form.append("pickupInstructions", formData.pickupInstructions);
+      form.append("userId", authUser.uid);
+      const fileInput = document.getElementById("foodImage") as HTMLInputElement | null;
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        form.append("image", fileInput.files[0]);
       }
       const res = await fetch("/api/donated-food", {
         method: "POST",
         body: form,
-      })
+      });
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Failed to donate food")
+        const data = await res.json();
+        throw new Error(data.error || "Failed to donate food");
       }
       setSuccessMsg("Food donation submitted successfully!");
       setTimeout(() => {
         setSuccessMsg(null);
         router.push("/dashboard");
       }, 1800);
-    } catch (error: any) {
-      alert(error.message || "Error submitting form")
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message || "Error submitting form");
+      } else {
+        alert("Error submitting form");
+      }
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
-
-  const [user, setUser] = useState({
-    displayName: "",
-    email: "",
-    fullName: "",
-    avatar: ""
-  })
-  const [profileData, setProfileData] = useState({
-    fullName: "",
-    email: "",
-    avatar: ""
-  })
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
-      const auth = getAuth()
-      const currentUser = auth.currentUser
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
       if (currentUser) {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid))
-        const fullName = userDoc.exists() ? userDoc.data().name : ""
-        const avatar = userDoc.exists() ? userDoc.data().avatar || "" : ""
-        const email = currentUser.email || ""
-        setUser({
-          displayName: currentUser.displayName || "",
-          email: email,
-          fullName: fullName,
-          avatar: avatar
-        })
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        const fullName = userDoc.exists() ? userDoc.data().name : "";
+        const avatar = userDoc.exists() ? userDoc.data().avatar || "" : "";
+        const email = currentUser.email || "";
         setProfileData({
           fullName: fullName || currentUser.displayName || "",
           email: email,
           avatar: avatar
-        })
+        });
       }
-    }
-    fetchUser()
-  }, [])
+    };
+    fetchUser();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -205,7 +209,7 @@ export default function DonateFood() {
                 try {
                   await auth.signOut();
                   window.location.href = "/login";
-                } catch (err) {
+                } catch {
                   alert("Failed to sign out. Please try again.");
                 }
               }}
@@ -322,6 +326,7 @@ export default function DonateFood() {
                   <div className="mt-4">
                     <p className="text-sm text-gray-500 mb-2">Image Preview:</p>
                     <div className="relative w-full h-64 bg-gray-100 rounded-md overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={imagePreview || "/placeholder.svg"}
                         alt="Food preview"

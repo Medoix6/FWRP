@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Home, MessageCircle, User, LogOut, Menu, Gift, Settings } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { auth, db } from "@/app/firebase"
+import { auth } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar"
+// import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar"
 import { getUserProfile, fetchDonatedFood } from "@/controllers/dashboardController"
 
 export default function Dashboard() {
@@ -19,7 +19,18 @@ export default function Dashboard() {
     email: "",
     avatar: ""
   })
-  const [donatedFood, setDonatedFood] = useState<any[]>([])
+  interface DonatedFoodType {
+    id: string;
+    avatar?: string;
+    foodName?: string;
+    imageUrl?: string;
+    description?: string;
+    userId?: string;
+    location?: string;
+    expiryDate?: string;
+    pickupInstructions?: string;
+  }
+  const [donatedFood, setDonatedFood] = useState<DonatedFoodType[]>([])
   const [donorPhones, setDonorPhones] = useState<{ [userId: string]: string }>({});
   const [loading, setLoading] = useState(true)
 
@@ -48,7 +59,7 @@ export default function Dashboard() {
         const data = await fetchDonatedFood();
         setDonatedFood(data.donations || []);
         // Fetch phone numbers for each donor
-        const userIds = (data.donations || []).map((item: any) => item.userId).filter(Boolean);
+        const userIds = (data.donations || []).map((item: DonatedFoodType) => item.userId as string).filter(Boolean);
         const uniqueUserIds = Array.from(new Set(userIds)) as string[];
         const phones: { [userId: string]: string } = {};
         await Promise.all(uniqueUserIds.map(async (userId: string) => {
@@ -63,7 +74,7 @@ export default function Dashboard() {
           } catch {}
         }));
         setDonorPhones(phones);
-      } catch (e) {
+      } catch {
         setDonatedFood([]);
         setDonorPhones({});
       } finally {
@@ -141,7 +152,7 @@ export default function Dashboard() {
                 try {
                   await auth.signOut();
                   window.location.href = "/login";
-                } catch (err) {
+                } catch {
                   alert("Failed to sign out. Please try again.");
                 }
               }}
@@ -167,7 +178,7 @@ export default function Dashboard() {
             ) : donatedFood.length === 0 ? (
               <div className="text-center text-gray-500">No food has been donated yet.</div>
             ) : (
-              donatedFood.map((item) => (
+              donatedFood.map((item: DonatedFoodType) => (
                 <Card key={item.id} className="overflow-hidden">
                   <CardHeader className="p-4 flex items-center space-x-4">
                     <Avatar>
@@ -177,11 +188,12 @@ export default function Dashboard() {
                     <span className="font-semibold flex-1 text-center">{item.foodName}</span>
                   </CardHeader>
                   <CardContent className="p-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={item.imageUrl || "/placeholder.svg"} alt="Food" className="w-full h-auto" />
                     <div className="p-4">
                       <p className="text-gray-600 mb-2">{item.description}</p>
                       {/* Show phone number above location if available */}
-                      {donorPhones[item.userId] && (
+                      {item.userId && donorPhones[item.userId] && (
                         <div className="text-sm text-gray-700 mb-2">
                           <span className="font-semibold text-green-700">Phone:</span> {donorPhones[item.userId]}
                         </div>
@@ -194,13 +206,13 @@ export default function Dashboard() {
                           {item.userId !== user?.email && item.userId !== auth.currentUser?.uid && (
                             <Button className="w-full sm:w-auto" onClick={async () => {
                               // Open WhatsApp chat
-                              const phone = donorPhones[item.userId]?.replace(/[^\d+]/g, '');
+                              const phone = item.userId ? donorPhones[item.userId]?.replace(/[^\d+]/g, '') : '';
                               if (!phone) {
-                                alert('No phone number available for this donor.');
+                                alert("No phone number available for this donor.");
                                 return;
                               }
                               const url = `https://wa.me/${phone}`;
-                              window.open(url, '_blank');
+                              window.open(url, "_blank");
                             }}>
                               <MessageCircle className="h-5 w-5 mr-2" />
                               Contact Donator
@@ -228,7 +240,7 @@ export default function Dashboard() {
                                     });
                                     if (!res.ok) throw new Error('Failed to delete');
                                     setDonatedFood((prev) => prev.filter((f) => f.id !== item.id));
-                                  } catch (e) {
+                                  } catch {
                                     alert('Error deleting donation');
                                   }
                                 }

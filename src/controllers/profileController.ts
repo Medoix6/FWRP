@@ -1,6 +1,7 @@
 import { db } from "@/app/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import type { FieldValue } from "firebase/firestore";
 
 export async function getUserProfileData(uid: string) {
   const userDoc = await getDoc(doc(db, "users", uid));
@@ -10,7 +11,10 @@ export async function getUserProfileData(uid: string) {
   return null;
 }
 
-export async function updateUserProfile(uid: string, data: { [key: string]: any }) {
+export async function updateUserProfile(
+  uid: string,
+  data: { [key: string]: FieldValue | Partial<unknown> | undefined }
+) {
   await updateDoc(doc(db, "users", uid), data);
 }
 

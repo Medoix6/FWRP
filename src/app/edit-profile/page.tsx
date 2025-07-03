@@ -12,13 +12,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings, Shield } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
-import { auth, db } from "@/app/firebase"
+import { auth } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { getUserProfileData, updateUserProfile, uploadAvatar } from "@/controllers/profileController"
-import Script from "next/script"
+import { getUserProfileData, updateUserProfile } from "@/controllers/profileController"
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
-
-const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 
 export default function EditProfile() {
   const router = useRouter()
@@ -27,7 +24,7 @@ export default function EditProfile() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [cloudinaryWidgetOpen, setCloudinaryWidgetOpen] = useState(false)
-  const [cloudinaryReady, setCloudinaryReady] = useState(true)
+  const [cloudinaryReady] = useState(true)
   const [isAvatarUploading, setIsAvatarUploading] = useState(false)
   const [avatarSuccess, setAvatarSuccess] = useState<string | null>(null)
 
@@ -103,9 +100,9 @@ export default function EditProfile() {
           multiple: false,
           folder: 'avatars',
         },
-        async (error: any, result: any) => {
-          if (!error && result && result.event === "success") {
-            const url = result.info.secure_url + '?t=' + Date.now();
+        async (error: unknown, result: unknown) => {
+          if (!error && result && (result as any).event === "success") {
+            const url = (result as any).info.secure_url + '?t=' + Date.now();
             setProfileData((prev) => ({ ...prev, avatar: url }));
             try {
               const currentUser = auth.currentUser;
@@ -113,7 +110,7 @@ export default function EditProfile() {
               await updateUserProfile(currentUser.uid, { avatar: url });
               setErrorMsg(null);
               setAvatarSuccess("Avatar updated successfully!");
-            } catch (err: any) {
+            } catch {
               setErrorMsg("Failed to update avatar in database.");
             }
           } else if (error) {
@@ -137,7 +134,7 @@ export default function EditProfile() {
       if (!currentUser) throw new Error("No authenticated user");
       await updateUserProfile(currentUser.uid, { avatar: "" });
       setErrorMsg(null);
-    } catch (err: any) {
+    } catch {
       setErrorMsg("Failed to reset avatar in database.");
     }
   };
@@ -154,7 +151,7 @@ export default function EditProfile() {
     try {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("No authenticated user");
-      let avatarUrl = profileData.avatar;
+      const avatarUrl = profileData.avatar;
       await updateUserProfile(currentUser.uid, {
         name: profileData.fullName,
         email: profileData.email,
@@ -169,9 +166,9 @@ export default function EditProfile() {
       setProfileData((prev) => ({ ...prev, avatar: avatarUrl }));
       setIsEditMode(false);
       router.push("/dashboard");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating profile:", error);
-      setErrorMsg(error?.message || "Failed to update profile. Please try again.");
+      setErrorMsg((error as Error)?.message || "Failed to update profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -209,11 +206,11 @@ export default function EditProfile() {
       setShowPasswordFields(false);
       setCurrentPassword("");
       setNewPassword("");
-    } catch (error: any) {
-      if (error.code === "auth/invalid-credential" || error.message?.includes("auth/invalid-credential")) {
+    } catch (error) {
+      if ((error as any).code === "auth/invalid-credential" || (error as any).message?.includes("auth/invalid-credential")) {
         setPasswordError("The current password you entered is incorrect.");
       } else {
-        setPasswordError(error.message || "Failed to update password.");
+        setPasswordError((error as Error).message || "Failed to update password.");
       }
     } finally {
       setIsPasswordSubmitting(false);
@@ -289,7 +286,7 @@ export default function EditProfile() {
                 try {
                   await auth.signOut();
                   router.push("/login");
-                } catch (err) {
+                } catch {
                   setErrorMsg("Failed to sign out. Please try again.");
                 }
               }}

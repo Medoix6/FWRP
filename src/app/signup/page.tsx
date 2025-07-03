@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { auth } from "@/app/firebase";
-import { createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -21,7 +21,9 @@ export default function SignupPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
-    const { email, password, "password-confirm": passwordConfirm } = form.elements as any;
+    const email = (form.elements.namedItem("email") as HTMLInputElement);
+    const password = (form.elements.namedItem("password") as HTMLInputElement);
+    const passwordConfirm = (form.elements.namedItem("password-confirm") as HTMLInputElement);
 
     if (password.value !== passwordConfirm.value) {
       setError("Both passwords don't match");
@@ -34,8 +36,7 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value); 
-      const user = userCredential.user;
+      await createUserWithEmailAndPassword(auth, email.value, password.value); 
       setSuccessMsg("Signup successful! Redirecting...");
       setTimeout(() => {
         setSuccessMsg(null);
