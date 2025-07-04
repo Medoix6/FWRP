@@ -16,6 +16,7 @@ import { auth } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { getUserProfileData, updateUserProfile } from "@/controllers/profileController"
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
+import { deleteUser } from "firebase/auth"
 
 export default function EditProfile() {
   const router = useRouter()
@@ -485,6 +486,29 @@ export default function EditProfile() {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Saving..." : isEditMode ? "Save Changes" : "Edit"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="ml-2 bg-red-600 text-white hover:bg-red-700"
+                  onClick={async () => {
+                    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
+                    setIsSubmitting(true);
+                    setErrorMsg(null);
+                    try {
+                      const currentUser = auth.currentUser;
+                      if (!currentUser) throw new Error("No authenticated user");
+                      await deleteUser(currentUser);
+                      router.push("/signup");
+                    } catch (error) {
+                      setErrorMsg((error as Error)?.message || "Failed to delete account. Please try again.");
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Delete Account
                 </Button>
               </div>
             </form>
