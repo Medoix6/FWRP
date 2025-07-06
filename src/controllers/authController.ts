@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword, sendPasswordResetEmail, Auth } from "firebase/auth";
 import { doc, getDoc, Firestore } from "firebase/firestore";
-import { User } from "@/models/user";
+import { User } from "@/features/user/model";
 
 // Handles user login and returns user data if successful
 export async function loginUser(auth: Auth, db: Firestore, email: string, password: string): Promise<User | null> {

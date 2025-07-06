@@ -14,7 +14,7 @@ import Link from "next/link"
 import { useEffect } from "react"
 import { auth } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { getUserProfileData, updateUserProfile } from "@/controllers/profileController"
+import { getUserProfileData, updateUserProfile } from "@/features/user/controller"
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
 import { deleteUser } from "firebase/auth"
 
