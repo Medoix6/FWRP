@@ -178,7 +178,12 @@ export default function EditProfile() {
       });
       setProfileData((prev) => ({ ...prev, avatar: avatarUrl }));
       setIsEditMode(false);
-      router.push("/dashboard");
+      // Redirect based on admin status
+      if (isAdmin) {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
       setErrorMsg((error as Error)?.message || "Failed to update profile. Please try again.");
