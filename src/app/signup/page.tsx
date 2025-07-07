@@ -42,8 +42,13 @@ export default function SignupPage() {
         setSuccessMsg(null);
         router.push("/complete-profile");
       }, 1800);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing up:", error);
+      if (error && error.code === "auth/email-already-in-use") {
+        setError("User already exists");
+      } else {
+        setError("An error occurred during signup. Please try again.");
+      }
     }
   };
 
