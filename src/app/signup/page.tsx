@@ -42,9 +42,15 @@ export default function SignupPage() {
         setSuccessMsg(null);
         router.push("/complete-profile");
       }, 1800);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error signing up:", error);
-      if (error && error.code === "auth/email-already-in-use") {
+      // Type guard for FirebaseError
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: string }).code === "auth/email-already-in-use"
+      ) {
         setError("User already exists");
       } else {
         setError("An error occurred during signup. Please try again.");
