@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 63, "column": 0}, "map": {"version":3,"sources":["file://D%3A/FWRP/src/pages/_app.tsx"],"sourcesContent":["import \"../app/globals.css\";\r\nimport Script from \"next/script\";\r\nimport type { AppProps } from \"next/app\";\r\n\r\nexport default function App({ Component, pageProps }: AppProps) {\r\n  return (\r\n    <>\r\n      <Script \r\n        src=\"https://upload-widget.cloudinary.com/global/all.js\" \r\n        // strategy=\"beforeInteractive\" // See: https://nextjs.org/docs/messages/no-before-interactive-script-outside-document\r\n      />\r\n      <Component {...pageProps} />\r\n    </>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;AACA;;;;AAGe,SAAS,IAAI,EAAE,SAAS,EAAE,SAAS,EAAY;IAC5D,qBACE;;0BACE,qKAAC,uHAAA,CAAA,UAAM;gBACL,KAAI;;;;;;0BAGN,qKAAC;gBAAW,GAAG,SAAS;;;;;;;;AAG9B"}},
+    {"offset": {"line": 91, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
+}

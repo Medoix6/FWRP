@@ -8,6 +8,18 @@ import { Button } from "@/components/ui/button"
 import { User, LogOut, Menu, Settings, Shield, Edit2, Trash2 } from "lucide-react"
 import { db } from "@/app/firebase"
 import { collection, getDocs } from "firebase/firestore"
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
@@ -34,6 +46,7 @@ export default function AdminPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [adminAvatar, setAdminAvatar] = useState<string>("");
+  const [postCount, setPostCount] = useState<number>(0);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -51,6 +64,10 @@ export default function AdminPage() {
           };
         });
         setUsers(usersData);
+
+        // Fetch posts count
+        const postsSnapshot = await getDocs(collection(db, "donated-food"));
+        setPostCount(postsSnapshot.size);
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -156,6 +173,43 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
+      {/* Statistics and Chart Section */}
+      <div className="fixed top-0 left-0 w-full z-20 bg-white shadow flex flex-col items-center py-4 lg:ml-64">
+        <div className="flex flex-col md:flex-row gap-8 w-full max-w-4xl justify-center items-center">
+          <div className="flex flex-col items-center bg-green-50 rounded-lg px-6 py-4 shadow">
+            <span className="text-2xl font-bold text-green-700">{users.length}</span>
+            <span className="text-gray-600">Total Users</span>
+          </div>
+          <div className="flex flex-col items-center bg-blue-50 rounded-lg px-6 py-4 shadow">
+            <span className="text-2xl font-bold text-blue-700">{postCount}</span>
+            <span className="text-gray-600">Total Posts</span>
+          </div>
+          <div className="w-72 h-48 bg-white rounded-lg shadow flex items-center justify-center">
+            <Bar
+              data={{
+                labels: ["Users", "Posts"],
+                datasets: [
+                  {
+                    label: "Count",
+                    data: [users.length, postCount],
+                    backgroundColor: ["#22c55e", "#3b82f6"],
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  title: { display: true, text: "Users vs Posts" },
+                },
+                scales: {
+                  y: { beginAtZero: true },
+                },
+              }}
+            />
+          </div>
+        </div>
+      </div>
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white">
@@ -223,7 +277,7 @@ export default function AdminPage() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 lg:ml-64">
+      <div className="flex-1 lg:ml-64 pt-40">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
