@@ -53,6 +53,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📫 Contact
 
-Your Name - [@Medo](https://github.com/Medoix6)
+[@Medo](https://github.com/Medoix6)
 
 Project Link: https://github.com/Medoix6/FWRP
