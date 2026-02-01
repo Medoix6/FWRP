@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { auth } from "@/app/firebase"
 import { db } from "@/app/firebase"
-import { loginUser, sendReset } from "@/controllers/authController"
+import { loginUser, sendReset, ProfileMissingError } from "@/controllers/authController"
 
 export default function Login() {
   const router = useRouter()
@@ -56,8 +56,13 @@ export default function Login() {
       } else {
         setError("User not found");
       }
-    } catch {
-      setError("Invalid email or password");
+    } catch (err) {
+      if (err instanceof ProfileMissingError) {
+        // User authenticated but no profile doc -> redirect to complete profile
+        router.push("/complete-profile");
+      } else {
+        setError("Invalid email or password");
+      }
     }
   };
 
@@ -163,4 +168,4 @@ export default function Login() {
       </div>
     </div>
   )
-  }
+}

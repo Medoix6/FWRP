@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings } from "lucide-react"
+import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged, getAuth } from "firebase/auth"
@@ -197,6 +197,10 @@ export default function DonateFood() {
               <Link href="/donate-food" className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md">
                 <Gift className="h-5 w-5 mr-3" />
                 Donate Food
+              </Link>
+              <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <MessageCircle className="h-5 w-5 mr-3" />
+                Chat
               </Link>
             </nav>
           </div>

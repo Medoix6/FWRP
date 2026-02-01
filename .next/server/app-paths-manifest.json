@@ -1,5 +1,9 @@
 {
-  "/page": "app/page.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js"
+  "/api/donated-food/route": "app/api/donated-food/route.js",
+  "/complete-profile/page": "app/complete-profile/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/signup/page": "app/signup/page.js"
 }

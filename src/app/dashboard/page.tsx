@@ -4,14 +4,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Home, MessageCircle, User, LogOut, Menu, Gift, Settings } from "lucide-react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { auth } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
-// import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar"
 import { getUserProfile, fetchDonatedFood } from "@/controllers/dashboardController"
 
 export default function Dashboard() {
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [user, setUser] = useState<{ displayName: string | null, email: string | null, fullName?: string | null, avatar?: string | null }>({ displayName: null, email: null, avatar: null })
   const [profileData, setProfileData] = useState({
@@ -58,7 +59,6 @@ export default function Dashboard() {
       try {
         const data = await fetchDonatedFood();
         setDonatedFood(data.donations || []);
-        // Fetch phone numbers for each donor
         const userIds = (data.donations || []).map((item: DonatedFoodType) => item.userId as string).filter(Boolean);
         const uniqueUserIds = Array.from(new Set(userIds)) as string[];
         const phones: { [userId: string]: string } = {};
@@ -141,6 +141,10 @@ export default function Dashboard() {
                 <Gift className="h-5 w-5 mr-3" />
                 Donate Food
               </Link>
+              <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <MessageCircle className="h-5 w-5 mr-3" />
+                Chat
+              </Link>
             </nav>
           </div>
 
@@ -204,15 +208,9 @@ export default function Dashboard() {
                       <div className="flex flex-col items-center gap-2">
                         <div className="flex justify-center">
                           {item.userId !== user?.email && item.userId !== auth.currentUser?.uid && (
-                            <Button className="w-full sm:w-auto" onClick={async () => {
-                              // Open WhatsApp chat
-                              const phone = item.userId ? donorPhones[item.userId]?.replace(/[^\d+]/g, '') : '';
-                              if (!phone) {
-                                alert("No phone number available for this donor.");
-                                return;
-                              }
-                              const url = `https://wa.me/${phone}`;
-                              window.open(url, "_blank");
+                            <Button className="w-full sm:w-auto" onClick={() => {
+                              // Navigate to chat page with donator
+                              router.push(`/chat?donorId=${item.userId}&donationId=${item.id}`);
                             }}>
                               <MessageCircle className="h-5 w-5 mr-2" />
                               Contact Donator

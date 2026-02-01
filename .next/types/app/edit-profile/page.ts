@@ -1,4 +1,4 @@
-// File: D:\FWRP\src\app\edit-profile\page.tsx
+// File: D:\DEV\Projects\FWRP\src\app\edit-profile\page.tsx
 import * as entry from '../../../../src/app/edit-profile/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

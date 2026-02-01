@@ -2,6 +2,13 @@ import { signInWithEmailAndPassword, sendPasswordResetEmail, Auth } from "fireba
 import { doc, getDoc, Firestore } from "firebase/firestore";
 import { User } from "@/features/user/model";
 
+export class ProfileMissingError extends Error {
+  constructor(message = "Profile missing") {
+    super(message);
+    this.name = "ProfileMissingError";
+  }
+}
+
 // Handles user login and returns user data if successful
 export async function loginUser(auth: Auth, db: Firestore, email: string, password: string): Promise<User | null> {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -10,7 +17,8 @@ export async function loginUser(auth: Auth, db: Firestore, email: string, passwo
   if (userDoc.exists()) {
     return { uid: user.uid, ...userDoc.data() } as User;
   }
-  return null;
+  // If authenticated but no doc, throw specific error
+  throw new ProfileMissingError();
 }
 
 export async function sendReset(auth: Auth, email: string): Promise<void> {
