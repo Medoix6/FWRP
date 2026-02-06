@@ -30,7 +30,7 @@ if (fs.existsSync(envPath)) {
 
 async function run() {
     try {
-        const { adminAuth } = await import('../src/app/firebaseAdmin.js');
+        const { adminAuth } = await import('../src/app/firebaseAdmin.ts');
         const targetEmail = "mohamedsami.per@gmail.com";
         console.log(`Checking for user: ${targetEmail}...`);
 

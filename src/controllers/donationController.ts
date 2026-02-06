@@ -1,5 +1,13 @@
+import { AuthTokenManager } from "@/lib/clientAuth";
+
 export async function fetchDonationById(id: string) {
-  const res = await fetch(`/api/donated-food/${id}`);
+  const authHeader = AuthTokenManager.getAuthHeader();
+  const res = await fetch(`/api/donated-food/${id}`, {
+    headers: {
+      ...(authHeader || {}),
+    },
+  });
   if (!res.ok) throw new Error("Donation not found");
-  return await res.json();
+  const response = await res.json();
+  return response.data || response;
 }

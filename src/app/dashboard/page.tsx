@@ -7,9 +7,13 @@ import { Home, MessageCircle, User, LogOut, Menu, Gift, Settings } from "lucide-
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { auth } from "@/app/firebase"
+import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
+import { collection, query, where, onSnapshot } from "firebase/firestore"
 import { getUserProfile, fetchDonatedFood } from "@/controllers/dashboardController"
+import { AuthTokenManager } from "@/lib/clientAuth"
+import { getCsrfHeaders } from "@/lib/clientCsrf"
+import { LoadingScreen } from "@/components/Loading"
 
 export default function Dashboard() {
   const router = useRouter()
@@ -25,6 +29,7 @@ export default function Dashboard() {
     avatar?: string;
     foodName?: string;
     imageUrl?: string;
+    imageUrls?: string[];
     description?: string;
     userId?: string;
     location?: string;
@@ -34,6 +39,7 @@ export default function Dashboard() {
   const [donatedFood, setDonatedFood] = useState<DonatedFoodType[]>([])
   const [donorPhones, setDonorPhones] = useState<{ [userId: string]: string }>({});
   const [loading, setLoading] = useState(true)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -46,7 +52,7 @@ export default function Dashboard() {
           avatar: profile.avatar
         });
       } else {
-        // Not authenticated, redirect to login
+        //Check for authentication . If not authenticated, redirect to login page.
         window.location.href = "/login";
       }
     });
@@ -64,9 +70,15 @@ export default function Dashboard() {
         const phones: { [userId: string]: string } = {};
         await Promise.all(uniqueUserIds.map(async (userId: string) => {
           try {
-            const res = await fetch(`/api/users/${userId}`);
+            const authHeader = AuthTokenManager.getAuthHeader();
+            const res = await fetch(`/api/users/${userId}`, {
+              headers: {
+                ...(authHeader || {}),
+              },
+            });
             if (res.ok) {
-              const donor = await res.json();
+              const donorResponse = await res.json();
+              const donor = donorResponse.data || donorResponse;
               if (donor.phone) {
                 phones[userId] = donor.phone;
               }
@@ -84,13 +96,30 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
+  // Listen for unread messages
+  useEffect(() => {
+    if (!user.email) return;
+    
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const messagesRef = collection(db, "messages");
+    const unreadQuery = query(
+      messagesRef,
+      where("receiverId", "==", currentUser.uid),
+      where("status", "in", ["sent", "delivered"])
+    );
+
+    const unsubscribe = onSnapshot(unreadQuery, (snapshot) => {
+      setUnreadCount(snapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, [user.email]);
+
 
   if (loading || !profileData.fullName) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center text-gray-500 text-lg">Loading dashboard...</div>
-      </div>
-    )
+    return <LoadingScreen message="Loading dashboard..." />
   }
 
   return (
@@ -143,7 +172,12 @@ export default function Dashboard() {
               </Link>
               <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <MessageCircle className="h-5 w-5 mr-3" />
-                Chat
+                <span className="flex-1">Chat</span>
+                {unreadCount > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Link>
             </nav>
           </div>
@@ -155,6 +189,8 @@ export default function Dashboard() {
               onClick={async () => {
                 try {
                   await auth.signOut();
+                  AuthTokenManager.clearToken();
+                  document.cookie = "authToken=; path=/; max-age=0; samesite=lax";
                   window.location.href = "/login";
                 } catch {
                   alert("Failed to sign out. Please try again.");
@@ -192,8 +228,30 @@ export default function Dashboard() {
                     <span className="font-semibold flex-1 text-center">{item.foodName}</span>
                   </CardHeader>
                   <CardContent className="p-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={item.imageUrl || "/placeholder.svg"} alt="Food" className="w-full h-auto" />
+                    {/* Image gallery */}
+                    {(item.imageUrls && item.imageUrls.length > 0) || item.imageUrl ? (
+                      <div className="bg-gray-100">
+                        {item.imageUrls && item.imageUrls.length > 1 ? (
+                          <div className="grid grid-cols-2 gap-1">
+                            {item.imageUrls.slice(0, 4).map((imageUrl, index) => (
+                              <div key={index} className="aspect-square overflow-hidden bg-gray-200">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={imageUrl} alt={`Food ${index + 1}`} className="w-full h-full object-cover" />
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="w-full h-64 overflow-hidden">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={(item.imageUrls && item.imageUrls[0]) || item.imageUrl || "/placeholder.svg"} alt="Food" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400">No image available</span>
+                      </div>
+                    )}
                     <div className="p-4">
                       <p className="text-gray-600 mb-2">{item.description}</p>
                       {/* Show phone number above location if available */}
@@ -233,10 +291,19 @@ export default function Dashboard() {
                               onClick={async () => {
                                 if (confirm('Are you sure you want to delete this donation?')) {
                                   try {
+                                    const authHeader = AuthTokenManager.getAuthHeader();
+                                    const csrfHeaders = await getCsrfHeaders();
                                     const res = await fetch(`/api/donated-food?id=${item.id}`, {
                                       method: 'DELETE',
+                                      headers: {
+                                        ...(authHeader || {}),
+                                        ...csrfHeaders,
+                                      },
                                     });
-                                    if (!res.ok) throw new Error('Failed to delete');
+                                    if (!res.ok) {
+                                      const data = await res.json();
+                                      throw new Error(data?.error?.message || data.error || 'Failed to delete');
+                                    }
                                     setDonatedFood((prev) => prev.filter((f) => f.id !== item.id));
                                   } catch {
                                     alert('Error deleting donation');

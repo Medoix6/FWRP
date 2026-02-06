@@ -12,19 +12,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { auth, db } from "@/app/firebase"
+import { AuthTokenManager } from "@/lib/clientAuth"
+import { getCsrfHeaders } from "@/lib/clientCsrf"
 import { onAuthStateChanged, getAuth } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
-// import CloudinaryAvatar from "@/components/ui/CloudinaryAvatar" // Unused import
-
-
-interface FormDataType {
-  title: string;
-  description: string;
-  location: string;
-  expiryDate: string;
-  pickupInstructions: string;
-}
-
+import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore"
+import { LoadingSpinner } from "@/components/Loading"
 interface ProfileDataType {
   fullName: string;
   email: string;
@@ -41,7 +33,7 @@ export default function DonateFood() {
     expiryDate: "",
     pickupInstructions: "",
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<ProfileDataType>({
@@ -49,6 +41,7 @@ export default function DonateFood() {
     email: "",
     avatar: ""
   });
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Auth guard useEffect (moved inside component)
   useEffect(() => {
@@ -60,6 +53,27 @@ export default function DonateFood() {
     return () => unsubscribe();
   }, []);
 
+  // Listen for unread messages
+  useEffect(() => {
+    if (!profileData.email) return;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const messagesRef = collection(db, "messages");
+    const unreadQuery = query(
+      messagesRef,
+      where("receiverId", "==", currentUser.uid),
+      where("status", "in", ["sent", "delivered"])
+    );
+
+    const unsubscribe = onSnapshot(unreadQuery, (snapshot) => {
+      setUnreadCount(snapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, [profileData.email]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -69,14 +83,37 @@ export default function DonateFood() {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (files) {
+      const newImages = Array.from(files).slice(0, 4 - imagePreviews.length); // Limit to max 4 total
+      
+      newImages.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews((prev) => {
+            if (prev.length < 4) {
+              return [
+                ...prev,
+                {
+                  id: Math.random().toString(36).substr(2, 9),
+                  preview: reader.result as string,
+                  file: file,
+                },
+              ];
+            }
+            return prev;
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+      
+      // Reset input value
+      e.target.value = '';
     }
+  };
+
+  const removeImage = (id: string) => {
+    setImagePreviews((prev) => prev.filter((img) => img.id !== id));
   };
 
 
@@ -91,6 +128,13 @@ export default function DonateFood() {
         setIsSubmitting(false);
         return;
       }
+
+      if (imagePreviews.length === 0) {
+        alert("Please upload at least one image.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const form = new FormData();
       form.append("foodName", formData.title);
       form.append("description", formData.description);
@@ -98,17 +142,26 @@ export default function DonateFood() {
       form.append("expiryDate", formData.expiryDate);
       form.append("pickupInstructions", formData.pickupInstructions);
       form.append("userId", authUser.uid);
-      const fileInput = document.getElementById("foodImage") as HTMLInputElement | null;
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        form.append("image", fileInput.files[0]);
-      }
+      
+      // Append all images
+      imagePreviews.forEach((img) => {
+        form.append("images", img.file);
+      });
+
+      const authHeader = AuthTokenManager.getAuthHeader();
+      const csrfHeaders = await getCsrfHeaders();
       const res = await fetch("/api/donated-food", {
         method: "POST",
+        headers: {
+          ...(authHeader || {}),
+          ...csrfHeaders,
+        },
         body: form,
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to donate food");
+        const message = data?.error?.message || data?.error || "Failed to donate food";
+        throw new Error(message);
       }
       setSuccessMsg("Food donation submitted successfully!");
       setTimeout(() => {
@@ -148,7 +201,11 @@ export default function DonateFood() {
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {successMsg && (
-        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg text-lg font-semibold animate-fade-in">
+        <div
+          className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg text-lg font-semibold animate-fade-in"
+          role="status"
+          aria-live="polite"
+        >
           {successMsg}
         </div>
       )}
@@ -188,7 +245,7 @@ export default function DonateFood() {
             <nav className="mt-8 space-y-2">
               <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <Settings className="h-5 w-5 mr-3" />
-                Edit Profile
+                Show Profile
               </Link>
               <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <Home className="h-5 w-5 mr-3" />
@@ -200,7 +257,12 @@ export default function DonateFood() {
               </Link>
               <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
                 <MessageCircle className="h-5 w-5 mr-3" />
-                Chat
+                <span className="flex-1">Chat</span>
+                {unreadCount > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Link>
             </nav>
           </div>
@@ -212,6 +274,8 @@ export default function DonateFood() {
               onClick={async () => {
                 try {
                   await auth.signOut();
+                  AuthTokenManager.clearToken();
+                  document.cookie = "authToken=; path=/; max-age=0; samesite=lax";
                   window.location.href = "/login";
                 } catch {
                   alert("Failed to sign out. Please try again.");
@@ -288,6 +352,7 @@ export default function DonateFood() {
                   type="date"
                   value={formData.expiryDate}
                   onChange={handleChange}
+                  min={new Date().toISOString().split('T')[0]}
                   required
                 />
               </div>
@@ -305,50 +370,55 @@ export default function DonateFood() {
               </div>
 
               <div>
-                <Label htmlFor="foodImage">Food Image</Label>
+                <Label htmlFor="foodImages">Food Images (Max 4)</Label>
                 <div className="mt-1 flex items-center">
                   <label className="block w-full">
-                    <span className="sr-only">Choose food image</span>
+                    <span className="sr-only">Choose food images</span>
                     <Input
-                      id="foodImage"
-                      name="foodImage"
+                      id="foodImages"
+                      name="foodImages"
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={handleImageChange}
+                      disabled={imagePreviews.length >= 4}
                       className="block w-full text-sm text-gray-500
                         file:mr-4 file:py-2 file:px-4
                         file:rounded-md file:border-0
                         file:text-sm file:font-semibold
                         file:bg-green-50 file:text-green-700
-                        hover:file:bg-green-100"
-                      required
+                        hover:file:bg-green-100
+                        disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </label>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {imagePreviews.length}/4 images uploaded
+                </p>
 
-                {imagePreview && (
+                {imagePreviews.length > 0 && (
                   <div className="mt-4">
-                    <p className="text-sm text-gray-500 mb-2">Image Preview:</p>
-                    <div className="relative w-full h-64 bg-gray-100 rounded-md overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={imagePreview || "/placeholder.svg"}
-                        alt="Food preview"
-                        className="w-full h-full object-cover"
-                      />
-                      {/* X button to remove image */}
-                      <button
-                        type="button"
-                        aria-label="Remove image"
-                        className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow-md border border-gray-300"
-                        onClick={() => {
-                          setImagePreview(null);
-                          const fileInput = document.getElementById("foodImage") as HTMLInputElement | null;
-                          if (fileInput) fileInput.value = "";
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                      </button>
+                    <p className="text-sm text-gray-500 mb-3">Image Preview:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {imagePreviews.map((img) => (
+                        <div key={img.id} className="relative w-full h-48 bg-gray-100 rounded-md overflow-hidden">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={img.preview}
+                            alt="Food preview"
+                            className="w-full h-full object-cover"
+                          />
+                          {/* X button to remove image */}
+                          <button
+                            type="button"
+                            aria-label="Remove image"
+                            className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow-md border border-gray-300"
+                            onClick={() => removeImage(img.id)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -356,7 +426,7 @@ export default function DonateFood() {
 
               <div className="pt-4">
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Donate Food"}
+                  {isSubmitting ? <><LoadingSpinner size="sm" /> <span className="ml-2">Submitting...</span></> : "Donate Food"}
                 </Button>
               </div>
             </form>

@@ -31,7 +31,7 @@ if (fs.existsSync(envPath)) {
 async function run() {
     try {
         console.log("Importing firebaseAdmin...");
-        const { adminAuth } = await import('../src/app/firebaseAdmin.js');
+        const { adminAuth } = await import('../src/app/firebaseAdmin.ts');
         console.log("Listing last 10 users...");
         const listUsersResult = await adminAuth.listUsers(10);
 

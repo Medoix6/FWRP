@@ -12,6 +12,7 @@ import { useState } from "react"
 import { auth } from "@/app/firebase"
 import { db } from "@/app/firebase"
 import { loginUser, sendReset, ProfileMissingError } from "@/controllers/authController"
+import { AuthTokenManager } from "@/lib/clientAuth"
 
 export default function Login() {
   const router = useRouter()
@@ -49,6 +50,15 @@ export default function Login() {
     }
     try {
       const userData = await loginUser(auth, db, email, password);
+
+      const token = await auth.currentUser?.getIdToken();
+      if (token) {
+        AuthTokenManager.setToken(token);
+        // Set a short-lived cookie for middleware checks
+        const secureFlag = window.location.protocol === "https:" ? "; secure" : "";
+        document.cookie = `authToken=${token}; path=/; max-age=3600; samesite=lax${secureFlag}`;
+      }
+
       if (userData && userData.isAdmin) {
         router.push("/admin");
       } else if (userData) {
@@ -129,7 +139,11 @@ export default function Login() {
               </div>
             </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && (
+              <p className="text-red-500 text-sm" role="alert" aria-live="assertive">
+                {error}
+              </p>
+            )}
 
             <div>
               <Button type="submit" className="w-full">
@@ -152,7 +166,13 @@ export default function Login() {
               <Button type="submit" variant="outline" className="w-full">Send Password Reset Email</Button>
             </form>
             {resetMsg && (
-              <div className={`mt-2 text-sm ${resetMsg.includes('sent') ? 'text-green-600' : 'text-red-600'}`}>{resetMsg}</div>
+              <div
+                className={`mt-2 text-sm ${resetMsg.includes('sent') ? 'text-green-600' : 'text-red-600'}`}
+                role="status"
+                aria-live="polite"
+              >
+                {resetMsg}
+              </div>
             )}
           </div>
 

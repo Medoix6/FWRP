@@ -2,6 +2,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFirestore } from "firebase-admin/firestore";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
+import { handleApiError, ValidationError, createSuccessResponse, RateLimitError } from "@/lib/apiError";
+import { isRateLimited } from "@/lib/rateLimit";
+import { getUserFromAuth } from "@/lib/serverAuth";
 
 if (!getApps().length) {
   initializeApp({
@@ -20,13 +23,34 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clientId = req.headers.get('x-forwarded-for') || 'unknown';
+    if (isRateLimited(`get-user-${clientId}`)) {
+      throw new RateLimitError(300);
+    }
+
+    const requester = await getUserFromAuth(req) as any;
+
     const { id: userId } = await context.params;
-    if (!userId) return NextResponse.json({ error: "User ID required" }, { status: 400 });
+    if (!userId) {
+      throw new ValidationError("User ID required");
+    }
+
     const userDoc = await db.collection("users").doc(userId).get();
-    if (!userDoc.exists) return NextResponse.json({ error: "User not found" }, { status: 404 });
-    const { name, phone, avatar } = userDoc.data() || {};
-    return NextResponse.json({ name, phone, avatar });
-  } catch {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    if (!userDoc.exists) {
+      throw new ValidationError("User not found");
+    }
+
+    const { name, phone, avatar, address, city, state, postalCode, bio, email } = userDoc.data() || {};
+    const isSelfOrAdmin = requester.uid === userId || requester.isAdmin;
+    const responseData = isSelfOrAdmin
+      ? { id: userId, name, phone, avatar, address, city, state, postalCode, bio, email }
+      : { id: userId, name, phone, avatar };
+    
+    return NextResponse.json(
+      createSuccessResponse(responseData),
+      { status: 200 }
+    );
+  } catch (error) {
+    return handleApiError(error);
   }
 }

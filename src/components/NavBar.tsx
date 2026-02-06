@@ -6,7 +6,7 @@ const navLinks = [
 	{ href: "/", label: "Home" },
 	{ href: "/dashboard", label: "Dashboard" },
 	{ href: "/donate-food", label: "Donate Food" },
-	{ href: "/edit-profile", label: "Edit Profile" },
+	{ href: "/edit-profile", label: "Show Profile" },
 	{ href: "/admin", label: "Admin" },
 	{ href: "/login", label: "Login" },
 	{ href: "/signup", label: "Signup" },

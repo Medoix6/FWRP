@@ -17,7 +17,6 @@ export default function CompleteProfile() {
     phone: "",
     address: "",
     city: "",
-    county: "",
     state: "",
     postalCode: "",
     country: "",
@@ -67,7 +66,6 @@ export default function CompleteProfile() {
             setFormData(prev => ({
               ...prev,
               city: data.address.city || data.address.town || data.address.village || "",
-              county: data.address.county || "",
               state: data.address.state || data.address.region || "",
               postalCode: data.address.postcode || "",
               country: data.address.country || "",
@@ -104,7 +102,6 @@ export default function CompleteProfile() {
         phone: formData.phone,
         address: formData.address,
         city: formData.city,
-        county: formData.county,
         state: formData.state,
         postalCode: formData.postalCode,
         country: formData.country,
@@ -220,12 +217,6 @@ export default function CompleteProfile() {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="county">County</Label>
-              <div className="mt-1">
-                <Input id="county" name="county" type="text" value={formData.county} onChange={handleChange} placeholder="County (Optional)" />
-              </div>
-            </div>
 
             <div>
               <Label htmlFor="state">State / Province</Label>

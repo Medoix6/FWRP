@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { auth } from "@/app/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { AuthTokenManager } from "@/lib/clientAuth";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -36,7 +37,13 @@ export default function SignupPage() {
     setError("");
 
     try {
-      await createUserWithEmailAndPassword(auth, email.value, password.value); 
+      const credential = await createUserWithEmailAndPassword(auth, email.value, password.value); 
+      const token = await credential.user.getIdToken();
+      if (token) {
+        AuthTokenManager.setToken(token);
+        const secureFlag = window.location.protocol === "https:" ? "; secure" : "";
+        document.cookie = `authToken=${token}; path=/; max-age=3600; samesite=lax${secureFlag}`;
+      }
       setSuccessMsg("Signup successful! Redirecting...");
       setTimeout(() => {
         setSuccessMsg(null);
@@ -61,7 +68,11 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-green-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {successMsg && (
-        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg text-lg font-semibold animate-fade-in">
+        <div
+          className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg text-lg font-semibold animate-fade-in"
+          role="status"
+          aria-live="polite"
+        >
           {successMsg}
         </div>
       )}
@@ -110,7 +121,7 @@ export default function SignupPage() {
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm">
+              <div className="text-red-600 text-sm" role="alert" aria-live="assertive">
                 {error}
               </div>
             )}

@@ -1,4 +1,5 @@
 import { db } from "@/app/firebase";
+import { AuthTokenManager } from "@/lib/clientAuth";
 // import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
@@ -28,7 +29,13 @@ export async function getUserProfile(firebaseUser: User) {
 }
 
 export async function fetchDonatedFood() {
-  const res = await fetch("/api/donated-food");
+  const authHeader = AuthTokenManager.getAuthHeader();
+  const res = await fetch("/api/donated-food", {
+    headers: {
+      ...(authHeader || {}),
+    },
+  });
   if (!res.ok) throw new Error("Failed to fetch donated food");
-  return await res.json();
+  const response = await res.json();
+  return response.data || response;
 }

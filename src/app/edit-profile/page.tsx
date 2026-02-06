@@ -9,14 +9,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings, Shield } from "lucide-react"
+import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings, Shield, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
 import { auth } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
+import { collection, query, where, onSnapshot } from "firebase/firestore"
+import { db } from "@/app/firebase"
 import { getUserProfileData, updateUserProfile } from "@/features/user/controller"
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
 import { deleteUser } from "firebase/auth"
+import { AuthTokenManager } from "@/lib/clientAuth"
+import { LoadingSpinner } from "@/components/Loading"
 
 export default function EditProfile() {
   const router = useRouter()
@@ -65,6 +69,27 @@ export default function EditProfile() {
     return () => unsubscribe();
   }, []);
 
+  // Listen for unread messages
+  useEffect(() => {
+    if (!user.email) return;
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const messagesRef = collection(db, "messages");
+    const unreadQuery = query(
+      messagesRef,
+      where("receiverId", "==", currentUser.uid),
+      where("status", "in", ["sent", "delivered"])
+    );
+
+    const unsubscribe = onSnapshot(unreadQuery, (snapshot) => {
+      setUnreadCount(snapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, [user.email]);
+
   const [profileData, setProfileData] = useState({
     fullName: "",
     email: "",
@@ -78,6 +103,7 @@ export default function EditProfile() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -298,6 +324,15 @@ export default function EditProfile() {
                         <Gift className="h-5 w-5 mr-3" />
                         Donate Food
                       </Link>
+                      <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                        <MessageCircle className="h-5 w-5 mr-3" />
+                        <span className="flex-1">Chat</span>
+                        {unreadCount > 0 && (
+                          <span className="ml-auto bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        )}
+                      </Link>
                     </>
                   )}
                 </>
@@ -312,6 +347,8 @@ export default function EditProfile() {
               onClick={async () => {
                 try {
                   await auth.signOut();
+                  AuthTokenManager.clearToken();
+                  document.cookie = "authToken=; path=/; max-age=0; samesite=lax";
                   router.push("/login");
                 } catch {
                   setErrorMsg("Failed to sign out. Please try again.");
@@ -361,7 +398,7 @@ export default function EditProfile() {
                         title={cloudinaryReady ? "Upload Avatar" : "Cloudinary widget is not ready yet"}
                       >
                         {isAvatarUploading ? (
-                          <span className="flex items-center"><span className="animate-spin mr-2 h-4 w-4 border-b-2 border-white rounded-full"></span>Uploading...</span>
+                          <span className="flex items-center"><LoadingSpinner size="sm" /> <span className="ml-2">Uploading...</span></span>
                         ) : "Upload Avatar"}
                       </Button>
                       <Button type="button" onClick={handleResetAvatar} className="ml-2 bg-gray-200 text-gray-800" disabled={isAvatarUploading}>Reset Avatar</Button>
@@ -474,7 +511,7 @@ export default function EditProfile() {
                     {passwordError && <div className="text-red-600">{passwordError}</div>}
                     {passwordSuccess && <div className="text-green-600">{passwordSuccess}</div>}
                     <Button onClick={handlePasswordChange} disabled={isPasswordSubmitting} type="button">
-                      {isPasswordSubmitting ? "Updating..." : "Update Password"}
+                      {isPasswordSubmitting ? <><LoadingSpinner size="sm" /> <span className="ml-2">Updating...</span></> : "Update Password"}
                     </Button>
                   </div>
                 )}
@@ -490,7 +527,7 @@ export default function EditProfile() {
                   type="submit"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Saving..." : isEditMode ? "Save Changes" : "Edit"}
+                  {isSubmitting ? <><LoadingSpinner size="sm" /> <span className="ml-2">Saving...</span></> : isEditMode ? "Save Changes" : "Edit"}
                 </Button>
                 <Button
                   type="button"

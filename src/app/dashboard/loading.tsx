@@ -1,5 +1,5 @@
 import { LoadingScreen } from "@/components/Loading"
 
 export default function Loading() {
-  return <LoadingScreen message="Loading Admin Panel..." />
+  return <LoadingScreen message="Loading Dashboard..." />
 }

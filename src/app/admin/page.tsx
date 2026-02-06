@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-// import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { User, LogOut, Menu, Settings, Shield, Edit2, Trash2 } from "lucide-react"
-import { db } from "@/app/firebase"
-import { collection, getDocs } from "firebase/firestore"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { User, LogOut, Menu, Settings, Shield, Edit2, Trash2, X, BarChart3, Users, FileText, LayoutDashboard } from "lucide-react"
+import { AuthTokenManager } from "@/lib/clientAuth"
+import { getCsrfHeaders } from "@/lib/clientCsrf"
+import { getAuth, onAuthStateChanged } from "firebase/auth"
 import { Bar } from "react-chartjs-2";
+import { LoadingScreen, LoadingSpinner } from "@/components/Loading"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,12 +24,8 @@ import {
 } from "chart.js";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { getAuth, onAuthStateChanged } from "firebase/auth"
 
 
-// User type for admin dashboard
 type UserType = {
   id: string;
   name: string;
@@ -52,22 +52,36 @@ export default function AdminPage() {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        const usersData: UserType[] = querySnapshot.docs.map((doc) => {
-          const data = doc.data() as UserType;
-          return {
-            id: doc.id,
-            name: data.name || "",
-            email: data.email || "",
-            avatar: data.avatar || "",
-            avatarSrc: data.avatar || "",
-          };
+        const authHeader = AuthTokenManager.getAuthHeader();
+        const usersRes = await fetch("/api/users", {
+          headers: {
+            ...(authHeader || {}),
+          },
         });
+        const usersPayload = await usersRes.json();
+        if (!usersRes.ok) {
+          throw new Error(usersPayload?.error?.message || "Failed to fetch users");
+        }
+        const usersData: UserType[] = (usersPayload.data?.users || []).map((user: UserType) => ({
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+          avatar: user.avatar || "",
+          avatarSrc: user.avatar || "",
+        }));
         setUsers(usersData);
 
-        // Fetch posts count
-        const postsSnapshot = await getDocs(collection(db, "donated-food"));
-        setPostCount(postsSnapshot.size);
+        // Fetch posts count via API
+        const postsRes = await fetch("/api/donated-food", {
+          headers: {
+            ...(authHeader || {}),
+          },
+        });
+        const postsData = await postsRes.json();
+        if (!postsRes.ok) {
+          throw new Error(postsData?.error?.message || "Failed to fetch donations");
+        }
+        setPostCount(postsData?.data?.donations?.length || 0);
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
@@ -81,22 +95,22 @@ export default function AdminPage() {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const userDoc = await getDocs(collection(db, "users"));
-        const adminDoc = userDoc.docs.find(doc => doc.id === firebaseUser.uid);
-        if (adminDoc && adminDoc.data().avatar) {
-          setAdminAvatar(adminDoc.data().avatar);
-        } else {
-          setAdminAvatar("");
-        }
+        const authHeader = AuthTokenManager.getAuthHeader();
+        const adminRes = await fetch(`/api/users/${firebaseUser.uid}`, {
+          headers: {
+            ...(authHeader || {}),
+          },
+        });
+        const adminData = await adminRes.json();
+        const profile = adminData.data || {};
+        setAdminAvatar(profile.avatar || "");
       } else {
         setAdminAvatar("");
         window.location.href = "/login";
       }
     });
     return () => unsubscribe();
-  }, [db, getAuth, onAuthStateChanged]);
-
-
+  }, []); 
 
   const handleEditUser = (userId: string) => {
     setEditUser(users.find((u) => u.id === userId) || null);
@@ -116,13 +130,18 @@ export default function AdminPage() {
     setEditError(null);
     setSuccessMsg(null);
     try {
+      const csrfHeaders = await getCsrfHeaders();
       const res = await fetch("/api/users", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(AuthTokenManager.getAuthHeader() || {}),
+          ...csrfHeaders,
+        },
         body: JSON.stringify({ id: editUser.id, name: editUser.name, email: editUser.email }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update user");
+      if (!res.ok) throw new Error(data?.error?.message || data.error || "Failed to update user");
       setUsers((prev) => prev.map((u) => (u.id === editUser.id ? { ...u, name: editUser.name, email: editUser.email } : u)));
       setSuccessMsg("User updated successfully.");
       setEditUser(null);
@@ -150,16 +169,18 @@ export default function AdminPage() {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("Not signed in");
       const token = await currentUser.getIdToken();
+      const csrfHeaders = await getCsrfHeaders();
       const res = await fetch("/api/users", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
+          ...csrfHeaders,
         },
         body: JSON.stringify({ id: deleteUser.id }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to delete user");
+      if (!res.ok) throw new Error(data?.error?.message || data.error || "Failed to delete user");
       setUsers((prev) => prev.filter((u) => u.id !== deleteUser.id));
       setSuccessMsg("User deleted successfully.");
       setDeleteUser(null);
@@ -173,69 +194,36 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Statistics and Chart Section */}
-      <div className="fixed top-0 left-0 w-full z-20 bg-white shadow flex flex-col items-center py-4 lg:ml-64">
-        <div className="flex flex-col md:flex-row gap-8 w-full max-w-4xl justify-center items-center">
-          <div className="flex flex-col items-center bg-green-50 rounded-lg px-6 py-4 shadow">
-            <span className="text-2xl font-bold text-green-700">{users.length}</span>
-            <span className="text-gray-600">Total Users</span>
-          </div>
-          <div className="flex flex-col items-center bg-blue-50 rounded-lg px-6 py-4 shadow">
-            <span className="text-2xl font-bold text-blue-700">{postCount}</span>
-            <span className="text-gray-600">Total Posts</span>
-          </div>
-          <div className="w-72 h-48 bg-white rounded-lg shadow flex items-center justify-center">
-            <Bar
-              data={{
-                labels: ["Users", "Posts"],
-                datasets: [
-                  {
-                    label: "Count",
-                    data: [users.length, postCount],
-                    backgroundColor: ["#22c55e", "#3b82f6"],
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                plugins: {
-                  legend: { display: false },
-                  title: { display: true, text: "Users vs Posts" },
-                },
-                scales: {
-                  y: { beginAtZero: true },
-                },
-              }}
-            />
-          </div>
-        </div>
-      </div>
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white">
+        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)} className="bg-white">
           <Menu className="h-5 w-5" />
         </Button>
       </div>
 
+      {/* Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div
-        className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
-      `}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full">
           <div className="p-6 border-b">
-            <h2 className="text-2xl font-bold text-green-600">FWRP</h2>
+            <h2 className="text-2xl font-bold text-green-600">FWRP Admin</h2>
           </div>
 
           <div className="flex-1 py-6 px-4 space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-20 w-20">
                 <AvatarImage src={adminAvatar || "/placeholder.svg?height=80&width=80"} alt="Admin" />
-                <AvatarFallback>
-                  <User className="h-10 w-10" />
-                </AvatarFallback>
+                <AvatarFallback>AD</AvatarFallback>
               </Avatar>
               <div className="text-center">
                 <h3 className="font-medium">Admin User</h3>
@@ -244,13 +232,19 @@ export default function AdminPage() {
             </div>
 
             <nav className="mt-8 space-y-2">
-              <Link href="/admin" className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md">
-                <Shield className="h-5 w-5 mr-3" />
-                Admin Dashboard
+              <Link
+                href="/admin"
+                className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md"
+              >
+                <LayoutDashboard className="h-5 w-5 mr-3" />
+                Dashboard
               </Link>
-              <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link
+                href="/edit-profile"
+                className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100"
+              >
                 <Settings className="h-5 w-5 mr-3" />
-                Edit Profile
+                Profile Settings
               </Link>
             </nav>
           </div>
@@ -263,6 +257,8 @@ export default function AdminPage() {
                 try {
                   const auth = getAuth();
                   await auth.signOut();
+                  AuthTokenManager.clearToken();
+                  document.cookie = "authToken=; path=/; max-age=0; samesite=lax";
                   window.location.href = "/login";
                 } catch {
                   alert("Failed to sign out. Please try again.");
@@ -274,177 +270,237 @@ export default function AdminPage() {
             </Button>
           </div>
         </div>
-      </div>
+      </aside>
 
-      {/* Main content */}
-      <div className="flex-1 lg:ml-64 pt-40">
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-64">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           </div>
         </header>
-        <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <svg className="animate-spin h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-              </svg>
-            </div>
-          ) : (
-            <div className="bg-white shadow rounded-lg overflow-hidden">
-              <div className="p-6 border-b">
-                <h2 className="text-xl font-semibold">User Management</h2>
-                <p className="text-gray-500 mt-1">View and manage all users in the system</p>
-              </div>
+        <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
 
-              {successMsg && (
-                <div className="p-4 text-green-700 bg-green-100 border border-green-300 mb-2 rounded">{successMsg}</div>
-              )}
-              {/* User table */}
+          {/* Stats Grid */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="text-sm font-medium">Total Users</div>
+                <Users className="h-4 w-4 text-gray-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{users.length}</div>
+                <p className="text-xs text-gray-500">
+                  Active accounts
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="text-sm font-medium">Total Posts</div>
+                <FileText className="h-4 w-4 text-gray-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{postCount}</div>
+                <p className="text-xs text-gray-500">
+                  Food donation posts
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts & Graphs Row */}
+          <div className="grid gap-4 md:grid-cols-1">
+            <Card>
+              <CardHeader>
+                <div className="text-lg font-semibold">Overview</div>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <div className="h-[300px] w-full flex items-center justify-center">
+                  <Bar
+                    data={{
+                      labels: ["Users", "Posts"],
+                      datasets: [
+                        {
+                          label: "Count",
+                          data: [users.length, postCount],
+                          backgroundColor: ["#22c55e", "#3b82f6"],
+                          borderRadius: 4,
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false },
+                        title: { display: false },
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          grid: { color: "rgba(0,0,0,0.05)" }
+                        },
+                        x: {
+                          grid: { display: false }
+                        }
+                      },
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+
+          {/* User Management Section */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold tracking-tight">User Management</h2>
+            {successMsg && (
+              <div className="p-4 text-green-700 bg-green-50 border border-green-200 rounded-lg text-sm flex items-center">
+                <Shield className="w-4 h-4 mr-2" />
+                {successMsg}
+              </div>
+            )}
+
+            <Card className="overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-gray-50 text-gray-600 font-medium border-b">
                     <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        User
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Actions
-                      </th>
+                      <th className="px-6 py-4">User</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {users.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10">
-                              <Avatar>
-                                <AvatarImage src={user.avatarSrc || "/placeholder.svg"} alt={user.name} />
-                                <AvatarFallback>{user.name[0].toUpperCase()}</AvatarFallback>
-                              </Avatar>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                              <div className="text-sm text-gray-500">{user.email}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleEditUser(user.id)}>
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteUser(user.id)}>
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
+                  <tbody className="divide-y">
+                    {loading ? (
+                      <tr>
+                        <td colSpan={3} className="px-6 py-8 text-center">
+                          <div className="flex items-center justify-center gap-3">
+                            <LoadingSpinner />
+                            <span className="text-gray-600">Loading users...</span>
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      users.map((user) => (
+                        <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-4">
+                              <Avatar className="h-9 w-9">
+                                <AvatarImage src={user.avatarSrc || "/placeholder.svg"} />
+                                <AvatarFallback>{user.name[0]?.toUpperCase() || "U"}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium">{user.name}</div>
+                                <div className="text-xs text-gray-500">{user.email}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Active
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="icon" onClick={() => handleEditUser(user.id)} className="h-8 w-8 text-gray-500 hover:text-gray-900">
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteUser(user.id)} className="h-8 w-8 text-gray-500 hover:text-red-600">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
-
-              {/* Pagination */}
-              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      Showing <span className="font-medium">1</span> to{" "}
-                      <span className="font-medium">{users.length}</span> of{" "}
-                      <span className="font-medium">{users.length}</span> results
-                    </p>
+              {/* Pagination (Simplified) */}
+              {!loading && users.length > 0 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
+                  <div className="text-xs text-gray-500">
+                    Showing <strong>{users.length}</strong> users
                   </div>
-                  <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                      <Button
-                        variant="outline"
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                      >
-                        Previous
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-                      >
-                        1
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                      >
-                        Next
-                      </Button>
-                    </nav>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled>Previous</Button>
+                    <Button variant="outline" size="sm" disabled>Next</Button>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
+            </Card>
+          </div>
+
         </main>
       </div>
 
       {/* Edit User Modal */}
       {editUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Edit User</h3>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="edit-name">Name</Label>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
+              <div className="font-semibold text-lg">Edit User</div>
+              <Button variant="ghost" size="icon" onClick={() => setEditUser(null)} className="h-6 w-6 rounded-full">
+                <X className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Display Name</Label>
                 <Input id="edit-name" name="name" value={editUser.name || ""} onChange={handleEditUserChange} />
               </div>
-              <div>
-                <Label htmlFor="edit-email">Email</Label>
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email Address</Label>
                 <Input id="edit-email" name="email" value={editUser.email || ""} onChange={handleEditUserChange} />
               </div>
-              {editError && <div className="text-red-600">{editError}</div>}
-            </div>
-            <div className="flex justify-end space-x-2 mt-6">
-              <Button variant="outline" onClick={() => setEditUser(null)} disabled={editLoading}>
-                Cancel
-              </Button>
-              <Button onClick={handleEditUserSave} disabled={editLoading}>
-                {editLoading ? "Saving..." : "Save"}
-              </Button>
-            </div>
-          </div>
+              {editError && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{editError}</div>}
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setEditUser(null)} disabled={editLoading}>
+                  Cancel
+                </Button>
+                <Button onClick={handleEditUserSave} disabled={editLoading} className="bg-green-600 hover:bg-green-700">
+                  {editLoading ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
-      {/* Delete User Confirmation Modal */}
+      {/* Delete User Modal */}
       {deleteUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Delete User</h3>
-            <p>
-              Are you sure you want to delete{" "}
-              <span className="font-bold">{deleteUser.name}</span>? This action cannot be undone.
-            </p>
-            {deleteError && <div className="text-red-600 mt-2">{deleteError}</div>}
-            <div className="flex justify-end space-x-2 mt-6">
-              <Button variant="outline" onClick={() => setDeleteUser(null)} disabled={deleteLoading}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteUserConfirm} disabled={deleteLoading}>
-                {deleteLoading ? "Deleting..." : "Delete"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md animate-in fade-in zoom-in-95 duration-200 border-red-200">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2 text-red-600 font-semibold mb-1">
+                <Shield className="h-5 w-5" />
+                Confirm Deletion
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to delete <span className="font-medium text-gray-900">{deleteUser.name}</span>?
+                This action is permanent and cannot be undone.
+              </p>
 
-      {/* Overlay for mobile sidebar */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+              {deleteError && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{deleteError}</div>}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setDeleteUser(null)} disabled={deleteLoading}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteUserConfirm} disabled={deleteLoading}>
+                  {deleteLoading ? "Deleting..." : "Delete User"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
     </div>
