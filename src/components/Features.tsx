@@ -1,51 +1,64 @@
-import { Leaf, Users, Utensils } from "lucide-react"
+import { Leaf, Users, Utensils, Recycle, HandHeart } from "lucide-react"
 
 const features = [
   {
     name: "Eco-Friendly",
-    description: "Reduce your carbon footprint by minimizing food waste in your community.",
+    description: "Cut emissions by routing surplus food to nearby recipients fast.",
     icon: Leaf,
   },
   {
     name: "Community Sharing",
-    description: "Connect with local organizations to donate excess food efficiently.",
+    description: "Connect donors, volunteers, and shelters with verified profiles.",
     icon: Users,
   },
   {
     name: "Efficient Distribution",
-    description: "Streamline the process of getting surplus food to those in need.",
+    description: "Automated pickup windows and live chat keep deliveries on track.",
     icon: Utensils,
+  },
+  {
+    name: "Circular Impact",
+    description: "Track food rescued, meals served, and carbon saved in one place.",
+    icon: Recycle,
+  },
+  {
+    name: "Care Network",
+    description: "Prioritize high-need areas with smart matching and alerts.",
+    icon: HandHeart,
   },
 ]
 
 export default function Features() {
   return (
-    <div className="py-16 bg-green-50">
+    <section className="py-16 sm:py-20 bg-gradient-to-b from-emerald-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="lg:text-center">
-          <h2 className="text-base text-green-600 font-semibold tracking-wide uppercase">Features</h2>
-          <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            A better way to reduce food waste
-          </p>
+        <div className="text-center max-w-3xl mx-auto">
+          <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600">Features</p>
+          <h2 className="mt-3 font-display text-3xl sm:text-4xl text-gray-900">
+            Everything you need to rescue food with confidence
+          </h2>
         </div>
 
-        <div className="mt-10">
-          <dl className="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:gap-y-10">
-            {features.map((feature) => (
-              <div key={feature.name} className="relative">
-                <dt>
-                  <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-green-500 text-white">
-                    <feature.icon className="h-6 w-6" aria-hidden="true" />
-                  </div>
-                  <p className="ml-16 text-lg leading-6 font-medium text-gray-900">{feature.name}</p>
-                </dt>
-                <dd className="mt-2 ml-16 text-base text-gray-500">{feature.description}</dd>
+        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature) => (
+            <div
+              key={feature.name}
+              className="group rounded-3xl border border-emerald-100 bg-white/90 p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+            >
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                  <feature.icon className="h-6 w-6" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-gray-900">{feature.name}</p>
+                  <p className="mt-2 text-sm text-gray-600">{feature.description}</p>
+                </div>
               </div>
-            ))}
-          </dl>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
