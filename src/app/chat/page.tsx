@@ -160,8 +160,9 @@ export default function ChatPage() {
     if (!currentUserId) return
 
     const chatsRef = collection(db, "chats")
-    
-    const unsubscribe = onSnapshot(chatsRef, async (snapshot) => {
+    const chatsQuery = query(chatsRef, where("participants", "array-contains", currentUserId))
+
+    const unsubscribe = onSnapshot(chatsQuery, async (snapshot) => {
       try {
         const userConversations: Conversation[] = []
         
