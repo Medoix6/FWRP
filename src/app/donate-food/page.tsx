@@ -17,6 +17,7 @@ import { getCsrfHeaders } from "@/lib/clientCsrf"
 import { onAuthStateChanged, getAuth } from "firebase/auth"
 import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore"
 import { LoadingSpinner } from "@/components/Loading"
+import { logout } from "@/lib/logout"
 interface ProfileDataType {
   fullName: string;
   email: string;
@@ -199,10 +200,10 @@ export default function DonateFood() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-lime-50 to-white flex">
       {successMsg && (
         <div
-          className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg text-lg font-semibold animate-fade-in"
+          className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-600 text-white px-6 py-3 rounded-2xl shadow-lg text-lg font-semibold animate-fade-in"
           role="status"
           aria-live="polite"
         >
@@ -211,7 +212,7 @@ export default function DonateFood() {
       )}
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white">
+        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white border-emerald-200 hover:bg-emerald-50">
           <Menu className="h-5 w-5" />
         </Button>
       </div>
@@ -219,13 +220,13 @@ export default function DonateFood() {
       {/* Sidebar */}
       <div
         className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-100 transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
       `}
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b">
-            <h2 className="text-2xl font-bold text-green-600">FWRP</h2>
+          <div className="p-6 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-lime-50">
+            <h2 className="text-2xl font-bold text-emerald-600">FWRP</h2>
           </div>
 
           <div className="flex-1 py-6 px-4 space-y-6">
@@ -243,19 +244,19 @@ export default function DonateFood() {
             </div>
 
             <nav className="mt-8 space-y-2">
-              <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <Settings className="h-5 w-5 mr-3" />
                 Show Profile
               </Link>
-              <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <Home className="h-5 w-5 mr-3" />
                 Dashboard
               </Link>
-              <Link href="/donate-food" className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md">
+              <Link href="/donate-food" className="flex items-center p-3 bg-emerald-100 text-emerald-700 rounded-xl font-medium">
                 <Gift className="h-5 w-5 mr-3" />
                 Donate Food
               </Link>
-              <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <MessageCircle className="h-5 w-5 mr-3" />
                 <span className="flex-1">Chat</span>
                 {unreadCount > 0 && (
@@ -267,16 +268,13 @@ export default function DonateFood() {
             </nav>
           </div>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-emerald-100">
             <Button
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start border-emerald-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
               onClick={async () => {
                 try {
-                  await auth.signOut();
-                  AuthTokenManager.clearToken();
-                  document.cookie = "authToken=; path=/; max-age=0; samesite=lax";
-                  window.location.href = "/login";
+                  await logout();
                 } catch {
                   alert("Failed to sign out. Please try again.");
                 }
@@ -291,10 +289,10 @@ export default function DonateFood() {
 
       {/* Main content */}
       <div className="flex-1 lg:ml-64">
-        <header className="bg-white shadow">
+        <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-emerald-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
             <Link href="/dashboard" className="mr-4">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="hover:bg-emerald-50 hover:text-emerald-700">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back to Dashboard
               </Button>
@@ -302,9 +300,10 @@ export default function DonateFood() {
             <h1 className="text-3xl font-bold text-gray-900">Donate Food</h1>
           </div>
         </header>
-        <main className="max-w-3xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-6">Share Your Excess Food</h2>
+        <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <div className="bg-white/90 shadow-lg rounded-3xl border border-emerald-100 p-8">
+            <h2 className="text-2xl font-semibold mb-2 text-gray-900">Share Your Excess Food</h2>
+            <p className="text-sm text-gray-600 mb-6">Help reduce food waste by donating to those in need</p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -384,10 +383,10 @@ export default function DonateFood() {
                       disabled={imagePreviews.length >= 4}
                       className="block w-full text-sm text-gray-500
                         file:mr-4 file:py-2 file:px-4
-                        file:rounded-md file:border-0
+                        file:rounded-xl file:border-0
                         file:text-sm file:font-semibold
-                        file:bg-green-50 file:text-green-700
-                        hover:file:bg-green-100
+                        file:bg-emerald-50 file:text-emerald-700
+                        hover:file:bg-emerald-100
                         disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </label>
@@ -425,7 +424,7 @@ export default function DonateFood() {
               </div>
 
               <div className="pt-4">
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={isSubmitting}>
                   {isSubmitting ? <><LoadingSpinner size="sm" /> <span className="ml-2">Submitting...</span></> : "Donate Food"}
                 </Button>
               </div>

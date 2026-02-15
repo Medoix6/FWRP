@@ -14,6 +14,7 @@ import { getUserProfile, fetchDonatedFood } from "@/controllers/dashboardControl
 import { AuthTokenManager } from "@/lib/clientAuth"
 import { getCsrfHeaders } from "@/lib/clientCsrf"
 import { LoadingScreen } from "@/components/Loading"
+import { logout } from "@/lib/logout"
 
 export default function Dashboard() {
   const router = useRouter()
@@ -123,10 +124,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-lime-50 to-white flex">
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white">
+        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white border-emerald-200 hover:bg-emerald-50">
           <Menu className="h-5 w-5" />
         </Button>
       </div>
@@ -134,13 +135,13 @@ export default function Dashboard() {
       {/* Sidebar */}
       <div
         className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-100 transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
       `}
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b">
-            <h2 className="text-2xl font-bold text-green-600">FWRP</h2>
+          <div className="p-6 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-lime-50">
+            <h2 className="text-2xl font-bold text-emerald-600">FWRP</h2>
           </div>
 
           <div className="flex-1 py-6 px-4 space-y-6">
@@ -158,19 +159,19 @@ export default function Dashboard() {
             </div>
 
             <nav className="mt-8 space-y-2">
-              <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <Settings className="h-5 w-5 mr-3" />
                 Show Profile
               </Link>
-              <Link href="/dashboard" className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md">
+              <Link href="/dashboard" className="flex items-center p-3 bg-emerald-100 text-emerald-700 rounded-xl font-medium">
                 <Home className="h-5 w-5 mr-3" />
                 Dashboard
               </Link>
-              <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <Gift className="h-5 w-5 mr-3" />
                 Donate Food
               </Link>
-              <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <MessageCircle className="h-5 w-5 mr-3" />
                 <span className="flex-1">Chat</span>
                 {unreadCount > 0 && (
@@ -182,16 +183,13 @@ export default function Dashboard() {
             </nav>
           </div>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-emerald-100">
             <Button
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start border-emerald-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
               onClick={async () => {
                 try {
-                  await auth.signOut();
-                  AuthTokenManager.clearToken();
-                  document.cookie = "authToken=; path=/; max-age=0; samesite=lax";
-                  window.location.href = "/login";
+                  await logout();
                 } catch {
                   alert("Failed to sign out. Please try again.");
                 }
@@ -206,20 +204,25 @@ export default function Dashboard() {
 
       {/* Main content */}
       <div className="flex-1 lg:ml-64">
-        <header className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-emerald-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-sm text-gray-600 mt-1">Welcome back! Here are the available food donations.</p>
           </div>
         </header>
-        <main className="max-w-2xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="space-y-6">
             {loading ? (
-              <div className="text-center text-gray-500">Loading donated food...</div>
+              <div className="text-center text-gray-500 py-10">Loading donated food...</div>
             ) : donatedFood.length === 0 ? (
-              <div className="text-center text-gray-500">No food has been donated yet.</div>
+              <div className="text-center text-gray-500 py-10 bg-white/80 rounded-3xl border border-emerald-100 shadow-sm p-8">
+                <Gift className="h-16 w-16 mx-auto mb-4 text-emerald-200" />
+                <p className="text-lg font-medium text-gray-700">No food donations available yet</p>
+                <p className="text-sm text-gray-500 mt-2">Be the first to donate and help reduce food waste!</p>
+              </div>
             ) : (
               donatedFood.map((item: DonatedFoodType) => (
-                <Card key={item.id} className="overflow-hidden">
+                <Card key={item.id} className="overflow-hidden rounded-3xl border-emerald-100 bg-white/90 shadow-md hover:shadow-xl transition-shadow">
                   <CardHeader className="p-4 flex items-center space-x-4">
                     <Avatar>
                       <AvatarImage src={item.avatar || "/placeholder.svg?height=80&width=80"} alt={item.foodName || "Donator"} />
@@ -234,16 +237,16 @@ export default function Dashboard() {
                         {item.imageUrls && item.imageUrls.length > 1 ? (
                           <div className="grid grid-cols-2 gap-1">
                             {item.imageUrls.slice(0, 4).map((imageUrl, index) => (
-                              <div key={index} className="aspect-square overflow-hidden bg-gray-200">
+                              <div key={index} className="w-full bg-gray-200 flex items-center justify-center">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={imageUrl} alt={`Food ${index + 1}`} className="w-full h-full object-cover" />
+                                <img src={imageUrl} alt={`Food ${index + 1}`} className="w-full h-auto max-h-64 object-contain" />
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="w-full h-64 overflow-hidden">
+                          <div className="w-full bg-gray-100 flex items-center justify-center">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={(item.imageUrls && item.imageUrls[0]) || item.imageUrl || "/placeholder.svg"} alt="Food" className="w-full h-full object-cover" />
+                            <img src={(item.imageUrls && item.imageUrls[0]) || item.imageUrl || "/placeholder.svg"} alt="Food" className="w-full h-auto max-h-96 object-contain" />
                           </div>
                         )}
                       </div>
@@ -252,21 +255,21 @@ export default function Dashboard() {
                         <span className="text-gray-400">No image available</span>
                       </div>
                     )}
-                    <div className="p-4">
-                      <p className="text-gray-600 mb-2">{item.description}</p>
+                    <div className="p-6">
+                      <p className="text-gray-700 mb-4 leading-relaxed">{item.description}</p>
                       {/* Show phone number above location if available */}
                       {item.userId && donorPhones[item.userId] && (
-                        <div className="text-sm text-gray-700 mb-2">
-                          <span className="font-semibold text-green-700">Phone:</span> {donorPhones[item.userId]}
+                        <div className="text-sm text-gray-700 mb-3 bg-emerald-50 p-3 rounded-xl">
+                          <span className="font-semibold text-emerald-700">Phone:</span> {donorPhones[item.userId]}
                         </div>
                       )}
-                      <p className="text-gray-500 text-sm mb-2"><span className="font-semibold text-green-700">Location:</span> {item.location}</p>
-                      <p className="text-gray-500 text-sm mb-2"><span className="font-semibold text-green-700">Expiry:</span> {item.expiryDate || "N/A"}</p>
-                      <p className="text-gray-500 text-sm mb-4"><span className="font-semibold text-green-700">Pickup:</span> {item.pickupInstructions || "N/A"}</p>
+                      <p className="text-gray-600 text-sm mb-2"><span className="font-semibold text-emerald-700">Location:</span> {item.location}</p>
+                      <p className="text-gray-600 text-sm mb-2"><span className="font-semibold text-emerald-700">Expiry:</span> {item.expiryDate || "N/A"}</p>
+                      <p className="text-gray-600 text-sm mb-4"><span className="font-semibold text-emerald-700">Pickup:</span> {item.pickupInstructions || "N/A"}</p>
                       <div className="flex flex-col items-center gap-2">
-                        <div className="flex justify-center">
+                        <div className="flex justify-center gap-2 flex-wrap">
                           {item.userId !== user?.email && item.userId !== auth.currentUser?.uid && (
-                            <Button className="w-full sm:w-auto" onClick={() => {
+                            <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700" onClick={() => {
                               // Navigate to chat page with donator
                               router.push(`/chat?donorId=${item.userId}&donationId=${item.id}`);
                             }}>
@@ -276,7 +279,7 @@ export default function Dashboard() {
                           )}
                           {item.userId === user?.email || item.userId === auth.currentUser?.uid ? (
                             <Button
-                              className="w-full sm:w-auto ml-2 bg-blue-500 hover:bg-blue-600"
+                              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
                               onClick={() => {
                                 // Redirect to edit page for this donation (dynamic route)
                                 window.location.href = `/edit-donation/${item.id}`;
@@ -287,7 +290,7 @@ export default function Dashboard() {
                           ) : null}
                           {item.userId === user?.email || item.userId === auth.currentUser?.uid ? (
                             <Button
-                              className="w-full sm:w-auto ml-2 bg-red-500 hover:bg-red-600"
+                              className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
                               onClick={async () => {
                                 if (confirm('Are you sure you want to delete this donation?')) {
                                   try {

@@ -13,6 +13,7 @@ import { onAuthStateChanged } from "firebase/auth"
 import { doc, getDoc, setDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp, getDocs, limit, updateDoc, where, writeBatch } from "firebase/firestore"
 import { AuthTokenManager } from "@/lib/clientAuth"
 import { LoadingScreen, LoadingSpinner } from "@/components/Loading"
+import { logout } from "@/lib/logout"
 
 interface Message {
   id: string
@@ -344,10 +345,10 @@ export default function ChatPage() {
   if (!donorId) {
     // Show conversation list
     return (
-      <div className="min-h-screen bg-gray-100 flex">
+      <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-lime-50 to-white flex">
         {/* Mobile sidebar toggle */}
         <div className="lg:hidden fixed top-4 left-4 z-50">
-          <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white">
+          <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white border-emerald-200 hover:bg-emerald-50">
             <Menu className="h-5 w-5" />
           </Button>
         </div>
@@ -355,13 +356,13 @@ export default function ChatPage() {
         {/* Sidebar */}
         <div
           className={`
-          fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
+          fixed inset-y-0 left-0 z-40 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-100 transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
         `}
         >
           <div className="flex flex-col h-full">
-            <div className="p-6 border-b">
-              <h2 className="text-2xl font-bold text-green-600">FWRP</h2>
+            <div className="p-6 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-lime-50">
+              <h2 className="text-2xl font-bold text-emerald-600">FWRP</h2>
             </div>
 
             <div className="flex-1 py-6 px-4 space-y-6">
@@ -379,19 +380,19 @@ export default function ChatPage() {
               </div>
 
               <nav className="mt-8 space-y-2">
-                <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                   <Settings className="h-5 w-5 mr-3" />
                   Show Profile
                 </Link>
-                <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                   <Home className="h-5 w-5 mr-3" />
                   Dashboard
                 </Link>
-                <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                   <Gift className="h-5 w-5 mr-3" />
                   Donate Food
                 </Link>
-                <Link href="/chat" className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md">
+                <Link href="/chat" className="flex items-center p-3 bg-emerald-100 text-emerald-700 rounded-xl font-medium">
                   <MessageCircle className="h-5 w-5 mr-3" />
                   <span className="flex-1">Chat</span>
                   {unreadCount > 0 && (
@@ -403,18 +404,15 @@ export default function ChatPage() {
               </nav>
             </div>
 
-            <div className="p-4 border-t">
+            <div className="p-4 border-t border-emerald-100">
               <Button
                 variant="outline"
-                className="w-full justify-start"
+                className="w-full justify-start border-emerald-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
                 onClick={async () => {
                   try {
-                    await auth.signOut()
-                    AuthTokenManager.clearToken()
-                    document.cookie = "authToken=; path=/; max-age=0; samesite=lax"
-                    window.location.href = "/login"
+                    await logout();
                   } catch {
-                    alert("Failed to sign out. Please try again.")
+                    alert("Failed to sign out. Please try again.");
                   }
                 }}
               >
@@ -427,10 +425,10 @@ export default function ChatPage() {
 
         {/* Main content - Conversation List */}
         <div className="flex-1 lg:ml-64 flex flex-col h-screen">
-          <header className="bg-white shadow">
+          <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-emerald-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
               <Link href="/dashboard" className="mr-4">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="hover:bg-emerald-50 hover:text-emerald-700">
                   <ArrowLeft className="h-5 w-5 mr-2" />
                   Back
                 </Button>
@@ -439,7 +437,7 @@ export default function ChatPage() {
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-4 bg-gray-50">
+          <main className="flex-1 overflow-y-auto p-4 bg-transparent">
             <div className="max-w-3xl mx-auto">
               {loadingConversations ? (
                 <div className="text-center py-10">
@@ -460,7 +458,7 @@ export default function ChatPage() {
                     <Link
                       key={conv.odId}
                       href={`/chat?donorId=${conv.odUserId}`}
-                      className="flex items-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 transition-colors"
+                      className="flex items-center p-4 bg-white/90 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all"
                     >
                       <Avatar className="h-12 w-12 mr-4">
                         <AvatarImage src={conv.otherUserAvatar || "/placeholder.svg?height=48&width=48"} alt={conv.otherUserName} />
@@ -494,10 +492,10 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-lime-50 to-white flex">
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white">
+        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white border-emerald-200 hover:bg-emerald-50">
           <Menu className="h-5 w-5" />
         </Button>
       </div>
@@ -505,13 +503,13 @@ export default function ChatPage() {
       {/* Sidebar */}
       <div
         className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-100 transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
       `}
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b">
-            <h2 className="text-2xl font-bold text-green-600">FWRP</h2>
+          <div className="p-6 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-lime-50">
+            <h2 className="text-2xl font-bold text-emerald-600">FWRP</h2>
           </div>
 
           <div className="flex-1 py-6 px-4 space-y-6">
@@ -529,19 +527,19 @@ export default function ChatPage() {
             </div>
 
             <nav className="mt-8 space-y-2">
-              <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <Settings className="h-5 w-5 mr-3" />
                 Show Profile
               </Link>
-              <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <Home className="h-5 w-5 mr-3" />
                 Dashboard
               </Link>
-              <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+              <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                 <Gift className="h-5 w-5 mr-3" />
                 Donate Food
               </Link>
-              <Link href="/chat" className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md">
+              <Link href="/chat" className="flex items-center p-3 bg-emerald-100 text-emerald-700 rounded-xl font-medium">
                 <MessageCircle className="h-5 w-5 mr-3" />
                 <span className="flex-1">Chat</span>
                 {unreadCount > 0 && (
@@ -553,18 +551,15 @@ export default function ChatPage() {
             </nav>
           </div>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-emerald-100">
             <Button
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start border-emerald-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
               onClick={async () => {
                 try {
-                  await auth.signOut()
-                    AuthTokenManager.clearToken()
-                    document.cookie = "authToken=; path=/; max-age=0; samesite=lax"
-                  window.location.href = "/login"
+                  await logout();
                 } catch {
-                  alert("Failed to sign out. Please try again.")
+                  alert("Failed to sign out. Please try again.");
                 }
               }}
             >
@@ -577,10 +572,10 @@ export default function ChatPage() {
 
       {/* Main content */}
       <div className="flex-1 lg:ml-64 flex flex-col h-screen">
-        <header className="bg-white shadow">
+        <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-emerald-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
             <Link href="/dashboard" className="mr-4">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="hover:bg-emerald-50 hover:text-emerald-700">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back
               </Button>
@@ -603,11 +598,11 @@ export default function ChatPage() {
         </header>
 
         {/* Messages area */}
-        <main className="flex-1 overflow-y-auto p-4 bg-gray-50">
+        <main className="flex-1 overflow-y-auto p-4 bg-transparent">
           <div className="max-w-3xl mx-auto space-y-4">
             {messages.length === 0 ? (
-              <div className="text-center text-gray-500 py-10">
-                <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <div className="text-center text-gray-500 py-10 bg-white/80 rounded-3xl border border-emerald-100 shadow-sm">
+                <MessageCircle className="h-12 w-12 mx-auto mb-4 text-emerald-200" />
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
@@ -617,15 +612,15 @@ export default function ChatPage() {
                   className={`flex ${message.senderId === currentUserId ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
                       message.senderId === currentUserId
-                        ? "bg-green-500 text-white"
-                        : "bg-white text-gray-900 shadow"
+                        ? "bg-emerald-600 text-white"
+                        : "bg-white/90 text-gray-900 border border-emerald-100"
                     }`}
                   >
                     <p>{message.text}</p>
                     <div className={`flex items-center justify-end gap-1 mt-1 ${
-                      message.senderId === currentUserId ? "text-green-100" : "text-gray-400"
+                      message.senderId === currentUserId ? "text-emerald-100" : "text-gray-400"
                     }`}>
                       {message.timestamp && (
                         <span className="text-xs">
@@ -654,15 +649,15 @@ export default function ChatPage() {
         </main>
 
         {/* Message input */}
-        <div className="bg-white border-t p-4">
+        <div className="bg-white/80 backdrop-blur-sm border-t border-emerald-100 p-4">
           <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex gap-2">
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
-              className="flex-1"
+              className="flex-1 border-emerald-200 focus:ring-emerald-500"
             />
-            <Button type="submit" disabled={!newMessage.trim()}>
+            <Button type="submit" disabled={!newMessage.trim()} className="bg-emerald-600 hover:bg-emerald-700">
               <Send className="h-5 w-5" />
             </Button>
           </form>

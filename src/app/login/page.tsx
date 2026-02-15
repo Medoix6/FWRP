@@ -51,12 +51,22 @@ export default function Login() {
     try {
       const userData = await loginUser(auth, db, email, password);
 
+      // Get ID token and create secure session
       const token = await auth.currentUser?.getIdToken();
       if (token) {
+        // Store token in localStorage for client-side API calls
         AuthTokenManager.setToken(token);
-        // Set a short-lived cookie for middleware checks
-        const secureFlag = window.location.protocol === "https:" ? "; secure" : "";
-        document.cookie = `authToken=${token}; path=/; max-age=3600; samesite=lax${secureFlag}`;
+        
+        // Create secure httpOnly session cookie via API
+        const sessionRes = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: token }),
+        });
+
+        if (!sessionRes.ok) {
+          throw new Error('Failed to create session');
+        }
       }
 
       if (userData && userData.isAdmin) {

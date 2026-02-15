@@ -13,6 +13,7 @@ import { getCsrfHeaders } from "@/lib/clientCsrf"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 import { Bar } from "react-chartjs-2";
 import { LoadingScreen, LoadingSpinner } from "@/components/Loading"
+import { logout } from "@/lib/logout"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -255,11 +256,7 @@ export default function AdminPage() {
               className="w-full justify-start"
               onClick={async () => {
                 try {
-                  const auth = getAuth();
-                  await auth.signOut();
-                  AuthTokenManager.clearToken();
-                  document.cookie = "authToken=; path=/; max-age=0; samesite=lax";
-                  window.location.href = "/login";
+                  await logout();
                 } catch {
                   alert("Failed to sign out. Please try again.");
                 }

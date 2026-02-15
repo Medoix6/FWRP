@@ -18,6 +18,7 @@ import { getUserProfile } from "@/controllers/dashboardController"
 import { AuthTokenManager } from "@/lib/clientAuth"
 import { getCsrfHeaders } from "@/lib/clientCsrf"
 import { LoadingScreen, LoadingSpinner } from "@/components/Loading"
+import { logout } from "@/lib/logout"
 
 interface ImagePreview {
   id: string;
@@ -244,11 +245,19 @@ export default function EditDonation() {
           </div>
 
           <div className="p-4 border-t">
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href="/login">
-                <LogOut className="h-5 w-5 mr-3" />
-                Sign out
-              </Link>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={async () => {
+                try {
+                  await logout();
+                } catch {
+                  alert("Failed to sign out. Please try again.");
+                }
+              }}
+            >
+              <LogOut className="h-5 w-5 mr-3" />
+              Sign out
             </Button>
           </div>
         </div>

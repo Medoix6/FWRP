@@ -21,6 +21,7 @@ import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 
 import { deleteUser } from "firebase/auth"
 import { AuthTokenManager } from "@/lib/clientAuth"
 import { LoadingSpinner } from "@/components/Loading"
+import { logout } from "@/lib/logout"
 
 export default function EditProfile() {
   const router = useRouter()
@@ -271,22 +272,22 @@ export default function EditProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-lime-50 to-white flex">
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white">
+        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white border-emerald-200 hover:bg-emerald-50">
           <Menu className="h-5 w-5" />
         </Button>
       </div>
 
       <div
         className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-100 transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
       `}
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b">
-            <h2 className="text-2xl font-bold text-green-600">FWRP</h2>
+          <div className="p-6 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-lime-50">
+            <h2 className="text-2xl font-bold text-emerald-600">FWRP</h2>
           </div>
 
           <div className="flex-1 py-6 px-4 space-y-6">
@@ -305,26 +306,26 @@ export default function EditProfile() {
             <nav className="mt-8 space-y-2">
               {isAdmin === null ? null : (
                 <>
-                  <Link href="/edit-profile" className="flex items-center p-3 bg-gray-100 text-green-600 rounded-md">
+                  <Link href="/edit-profile" className="flex items-center p-3 bg-emerald-100 text-emerald-700 rounded-xl font-medium">
                     <Settings className="h-5 w-5 mr-3" />
                     Show Profile
                   </Link>
                   {isAdmin ? (
-                    <Link href="/admin" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                    <Link href="/admin" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                       <Shield className="h-5 w-5 mr-3" />
                       Admin Dashboard
                     </Link>
                   ) : (
                     <>
-                      <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                      <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                         <Home className="h-5 w-5 mr-3" />
                         Dashboard
                       </Link>
-                      <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                      <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                         <Gift className="h-5 w-5 mr-3" />
                         Donate Food
                       </Link>
-                      <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
+                      <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
                         <MessageCircle className="h-5 w-5 mr-3" />
                         <span className="flex-1">Chat</span>
                         {unreadCount > 0 && (
@@ -340,16 +341,13 @@ export default function EditProfile() {
             </nav>
           </div>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-emerald-100">
             <Button
               variant="outline"
-              className="w-full justify-start"
+              className="w-full justify-start border-emerald-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
               onClick={async () => {
                 try {
-                  await auth.signOut();
-                  AuthTokenManager.clearToken();
-                  document.cookie = "authToken=; path=/; max-age=0; samesite=lax";
-                  router.push("/login");
+                  await logout();
                 } catch {
                   setErrorMsg("Failed to sign out. Please try again.");
                 }
@@ -363,10 +361,10 @@ export default function EditProfile() {
       </div>
       {/* Main content */}
       <div className="flex-1 lg:ml-64">
-        <header className="bg-white shadow">
+        <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-emerald-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
             <Link href="/dashboard" className="mr-4">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="hover:bg-emerald-50 hover:text-emerald-700">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back to Dashboard
               </Button>
@@ -374,8 +372,8 @@ export default function EditProfile() {
             <h1 className="text-3xl font-bold text-gray-900">Show Profile</h1>
           </div>
         </header>
-        <main className="max-w-3xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow rounded-lg p-6">
+        <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <div className="bg-white/90 shadow-lg rounded-3xl border border-emerald-100 p-8">
             <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
 
             <form onSubmit={handleEditOrSubmit} className="space-y-6">
@@ -393,7 +391,7 @@ export default function EditProfile() {
                       <Button
                         type="button"
                         onClick={handleCloudinaryUpload}
-                        className="ml-4 bg-blue-600 text-white"
+                        className="ml-4 bg-emerald-600 hover:bg-emerald-700 text-white"
                         disabled={!cloudinaryReady || isAvatarUploading}
                         title={cloudinaryReady ? "Upload Avatar" : "Cloudinary widget is not ready yet"}
                       >
@@ -519,13 +517,14 @@ export default function EditProfile() {
 
               <div className="pt-4 flex justify-end space-x-4">
                 {isEditMode && (
-                  <Button type="button" variant="outline" onClick={() => setIsEditMode(false)}>
+                  <Button type="button" variant="outline" onClick={() => setIsEditMode(false)} className="border-emerald-200 hover:bg-emerald-50">
                     Cancel
                   </Button>
                 )}
                 <Button
                   type="submit"
                   disabled={isSubmitting}
+                  className="bg-emerald-600 hover:bg-emerald-700"
                 >
                   {isSubmitting ? <><LoadingSpinner size="sm" /> <span className="ml-2">Saving...</span></> : isEditMode ? "Save Changes" : "Edit"}
                 </Button>
