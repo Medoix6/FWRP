@@ -19,7 +19,6 @@ import { db } from "@/app/firebase"
 import { getUserProfileData, updateUserProfile } from "@/features/user/controller"
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
 import { deleteUser } from "firebase/auth"
-import { AuthTokenManager } from "@/lib/clientAuth"
 import { LoadingSpinner } from "@/components/Loading"
 import { logout } from "@/lib/logout"
 

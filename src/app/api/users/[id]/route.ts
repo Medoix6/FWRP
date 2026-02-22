@@ -28,7 +28,7 @@ export async function GET(
       throw new RateLimitError(300);
     }
 
-    const requester = await getUserFromAuth(req) as any;
+    const requester = await getUserFromAuth(req) as { uid: string } & Record<string, unknown>;
 
     const { id: userId } = await context.params;
     if (!userId) {

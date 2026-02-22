@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the ID token
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    await adminAuth.verifyIdToken(idToken);
 
     // Create session cookie with 5 days expiration
     const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Set httpOnly cookie
     response.cookies.set('authToken', sessionCookie, {
-      maxAge: expiresIn / 1000, // in seconds
+      maxAge: expiresIn / 1000, 
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -55,7 +55,8 @@ export async function DELETE(request: NextRequest) {
     // Revoke all refresh tokens for the user if token exists
     if (token) {
       try {
-        const decodedToken = await adminAuth.verifyIdToken(token);
+        // Use verifySessionCookie instead of verifyIdToken since authToken is a session cookie
+        const decodedToken = await adminAuth.verifySessionCookie(token);
         await adminAuth.revokeRefreshTokens(decodedToken.uid);
       } catch (error) {
         console.error('Failed to revoke tokens:', error);

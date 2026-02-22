@@ -53,7 +53,6 @@ export default function Dashboard() {
           avatar: profile.avatar
         });
       } else {
-        //Check for authentication . If not authenticated, redirect to login page.
         window.location.href = "/login";
       }
     });
@@ -97,7 +96,7 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  // Listen for unread messages
+  
   useEffect(() => {
     if (!user.email) return;
     

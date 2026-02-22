@@ -33,7 +33,7 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting
-    const clientId = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`donate-${clientId}`)) {
       throw new RateLimitError(300);
     }
@@ -41,7 +41,13 @@ export async function POST(req: NextRequest) {
     validateCsrfToken(req);
 
     // Authentication
-    const user = await getUserFromAuth(req);
+    const user = await getUserFromAuth(req) as {
+      uid: string;
+      email?: string;
+      name?: string;
+      displayName?: string;
+      avatar?: string;
+    };
 
     const formData = await req.formData();
     const foodName = formData.get('foodName') as string;
@@ -135,7 +141,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // Rate limiting
-    const clientId = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`get-donations-${clientId}`)) {
       throw new RateLimitError(300);
     }
@@ -163,7 +169,7 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     // Rate limiting
-    const clientId = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`delete-donation-${clientId}`)) {
       throw new RateLimitError(300);
     }

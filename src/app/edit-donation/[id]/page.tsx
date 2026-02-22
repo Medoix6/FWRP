@@ -23,7 +23,7 @@ import { logout } from "@/lib/logout"
 interface ImagePreview {
   id: string;
   preview: string;
-  file: File;
+  file: File | null;
 }
 
 export default function EditDonation() {
@@ -68,7 +68,7 @@ export default function EditDonation() {
         const loadedImages: ImagePreview[] = existingImages.slice(0, 4).map((url, index) => ({
           id: `existing-${index}`,
           preview: url,
-          file: null as any, // No actual file for existing images
+          file: null, // No actual file for existing images
         }));
         setImagePreviews(loadedImages);
       } catch (error) {

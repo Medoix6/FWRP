@@ -24,6 +24,20 @@ interface ProfileDataType {
   avatar: string;
 }
 
+interface FormDataType {
+  title: string;
+  description: string;
+  location: string;
+  expiryDate: string;
+  pickupInstructions: string;
+}
+
+interface ImagePreview {
+  id: string;
+  preview: string;
+  file: File;
+}
+
 export default function DonateFood() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);

@@ -8,7 +8,7 @@ import { validateCsrfToken } from "@/lib/csrf";
 // GET all users (requires admin)
 export async function GET(req: NextRequest) {
   try {
-    const clientId = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`get-users-${clientId}`)) {
       throw new RateLimitError(300);
     }
@@ -40,14 +40,14 @@ export async function GET(req: NextRequest) {
 // PATCH to update a user
 export async function PATCH(req: NextRequest) {
   try {
-    const clientId = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`patch-user-${clientId}`)) {
       throw new RateLimitError(300);
     }
 
     validateCsrfToken(req);
 
-    const user = await getUserFromAuth(req);
+    const user = await getUserFromAuth(req) as { uid: string; isAdmin?: boolean };
     const { id, ...data } = await req.json();
 
     if (!id) {
@@ -55,7 +55,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Users can only update their own profile unless they're admin
-    const isAdmin = user.isAdmin;
+    const isAdmin = Boolean(user.isAdmin);
     if (id !== user.uid && !isAdmin) {
       throw new AuthenticationError('You can only update your own profile');
     }
@@ -72,10 +72,10 @@ export async function PATCH(req: NextRequest) {
       'avatar',
       'bio',
     ];
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, string | Date> = {};
     
     for (const [key, value] of Object.entries(data)) {
-      if (allowedFields.includes(key)) {
+      if (allowedFields.includes(key) && typeof value === 'string') {
         updateData[key] = value;
       }
     }
@@ -97,7 +97,7 @@ export async function PATCH(req: NextRequest) {
 // DELETE to remove a user (admin only)
 export async function DELETE(req: NextRequest) {
   try {
-    const clientId = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+    const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`delete-user-${clientId}`)) {
       throw new RateLimitError(300);
     }

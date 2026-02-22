@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { User, LogOut, Menu, Settings, Shield, Edit2, Trash2, X, BarChart3, Users, FileText, LayoutDashboard } from "lucide-react"
+import { LogOut, Menu, Settings, Shield, Edit2, Trash2, X, Users, FileText, LayoutDashboard } from "lucide-react"
 import { AuthTokenManager } from "@/lib/clientAuth"
 import { getCsrfHeaders } from "@/lib/clientCsrf"
 import { getAuth, onAuthStateChanged } from "firebase/auth"
 import { Bar } from "react-chartjs-2";
-import { LoadingScreen, LoadingSpinner } from "@/components/Loading"
+import { LoadingSpinner } from "@/components/Loading"
 import { logout } from "@/lib/logout"
 import {
   Chart as ChartJS,

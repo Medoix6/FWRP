@@ -10,7 +10,7 @@ import { Home, Gift, User, LogOut, Menu, MessageCircle, Send, ArrowLeft, Setting
 import Link from "next/link"
 import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { doc, getDoc, setDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp, getDocs, limit, updateDoc, where, writeBatch } from "firebase/firestore"
+import { doc, getDoc, setDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp, getDocs, limit, where, writeBatch } from "firebase/firestore"
 import { AuthTokenManager } from "@/lib/clientAuth"
 import { LoadingScreen, LoadingSpinner } from "@/components/Loading"
 import { logout } from "@/lib/logout"
@@ -49,7 +49,7 @@ export default function ChatPage() {
   const searchParams = useSearchParams()
   const donorId = searchParams?.get("donorId") || null
   // donationId can be used later for context about the donation
-  const _donationId = searchParams?.get("donationId") || null
+  // const donationId = searchParams?.get("donationId") || null
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])

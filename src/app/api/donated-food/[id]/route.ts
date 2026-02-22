@@ -34,7 +34,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
-    const clientId = request.headers.get('x-forwarded-for') || request.ip || 'unknown';
+    const clientId = request.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`get-donation-${clientId}`)) {
       throw new RateLimitError(300);
     }
@@ -70,7 +70,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
-    const clientId = request.headers.get('x-forwarded-for') || request.ip || 'unknown';
+    const clientId = request.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`patch-donation-${clientId}`)) {
       throw new RateLimitError(300);
     }
@@ -97,8 +97,8 @@ export async function PATCH(
       throw new ValidationError("You can only update your own donations");
     }
 
-    let data: Record<string, any> = {};
-    let newImageUrls: string[] = [];
+    const data: Record<string, string | string[]> = {};
+    const newImageUrls: string[] = [];
     let existingImagesToKeep: string[] = [];
 
     // Check content type
@@ -127,6 +127,7 @@ export async function PATCH(
           existingImagesToKeep = [];
         }
       }
+
 
       // Process new images
       const multipleImages = formData.getAll("images");
@@ -172,12 +173,12 @@ export async function PATCH(
         data.imageUrls = mergedImageUrls;
       }
     } else {
-      data = await request.json();
+      const jsonData = await request.json() as Record<string, unknown>;
       // Validate JSON inputs
-      if (data.foodName) data.foodName = validateFoodName(data.foodName);
-      if (data.description) data.description = validateDescription(data.description);
-      if (data.location) data.location = validateLocation(data.location);
-      if (data.expiryDate) data.expiryDate = validateDate(data.expiryDate);
+      if (typeof jsonData.foodName === "string") data.foodName = validateFoodName(jsonData.foodName);
+      if (typeof jsonData.description === "string") data.description = validateDescription(jsonData.description);
+      if (typeof jsonData.location === "string") data.location = validateLocation(jsonData.location);
+      if (typeof jsonData.expiryDate === "string") data.expiryDate = validateDate(jsonData.expiryDate);
     }
 
     // Remove undefined fields and add metadata
@@ -203,7 +204,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
-    const clientId = request.headers.get('x-forwarded-for') || request.ip || 'unknown';
+    const clientId = request.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`delete-donation-${clientId}`)) {
       throw new RateLimitError(300);
     }
