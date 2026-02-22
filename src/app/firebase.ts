@@ -1,5 +1,5 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -18,11 +18,22 @@ const firebaseConfig = {
 const requiredConfig = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
 const missingConfig = requiredConfig.filter(key => !firebaseConfig[key as keyof typeof firebaseConfig]);
 
-if (missingConfig.length > 0) {
+if (missingConfig.length > 0 && typeof window !== 'undefined') {
   throw new Error(`Missing required Firebase configuration: ${missingConfig.join(', ')}. Please check your .env.local file.`);
 }
 
+const fallbackConfig = {
+  apiKey: 'placeholder',
+  authDomain: 'placeholder',
+  projectId: 'placeholder',
+  storageBucket: 'placeholder',
+  messagingSenderId: 'placeholder',
+  appId: 'placeholder',
+};
+
+const resolvedConfig = missingConfig.length > 0 ? fallbackConfig : firebaseConfig;
+
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(resolvedConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
