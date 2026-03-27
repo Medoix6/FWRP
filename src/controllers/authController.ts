@@ -17,7 +17,7 @@ export async function loginUser(auth: Auth, db: Firestore, email: string, passwo
   if (userDoc.exists()) {
     return { uid: user.uid, ...userDoc.data() } as User;
   }
-  // If authenticated but no doc, throw specific error
+  // If authenticated but no doc, throw specific error to indicate profile is missing
   throw new ProfileMissingError();
 }
 

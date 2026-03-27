@@ -1,6 +1,8 @@
 
 "use client"
 
+export const dynamic = 'force-dynamic';
+
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -71,7 +73,6 @@ export default function DonateFood() {
   // Listen for unread messages
   useEffect(() => {
     if (!profileData.email) return;
-
     const currentUser = auth.currentUser;
     if (!currentUser) return;
 

@@ -18,10 +18,7 @@ const firebaseConfig = {
 const requiredConfig = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
 const missingConfig = requiredConfig.filter(key => !firebaseConfig[key as keyof typeof firebaseConfig]);
 
-if (missingConfig.length > 0 && typeof window !== 'undefined') {
-  throw new Error(`Missing required Firebase configuration: ${missingConfig.join(', ')}. Please check your .env.local file.`);
-}
-
+// Use fallback config during build time, only validate in browser at runtime
 const fallbackConfig = {
   apiKey: 'placeholder',
   authDomain: 'placeholder',
@@ -32,6 +29,14 @@ const fallbackConfig = {
 };
 
 const resolvedConfig = missingConfig.length > 0 ? fallbackConfig : firebaseConfig;
+
+// Only validate and throw error in browser after app initialization
+if (typeof window !== 'undefined' && missingConfig.length > 0) {
+  // Delay validation to after hydration
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.warn(`Missing required Firebase configuration: ${missingConfig.join(', ')}. Please check your .env.local file.`);
+  }
+}
 
 // Initialize Firebase
 const app = getApps().length ? getApp() : initializeApp(resolvedConfig);
