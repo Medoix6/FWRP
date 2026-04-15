@@ -173,7 +173,7 @@ export default function ChatPage() {
           const chatData = chatDoc.data()
           const chatRoomId = chatDoc.id
           
-          // Check if current user is part of this chat using participants array or chatRoomId
+          // Check if current user is part of this chat using participants array or chatroomID 
           const isParticipant = chatData.participants 
             ? chatData.participants.includes(currentUserId)
             : chatRoomId.includes(currentUserId)
@@ -276,7 +276,6 @@ export default function ChatPage() {
       })
       setMessages(newMessages)
     })
-
     return () => unsubscribe()
   }, [currentUserId, donorId])
 
@@ -288,7 +287,7 @@ export default function ChatPage() {
       const chatRoomId = [currentUserId, donorId].sort().join("_")
       const batch = writeBatch(db)
       let hasUpdates = false
-
+ 
       // Find messages sent by the other user that are not yet read
       for (const message of messages) {
         if (message.senderId === donorId && message.status !== "read") {
@@ -311,7 +310,7 @@ export default function ChatPage() {
   }, [currentUserId, donorId, messages])
 
   const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault() 
     if (!newMessage.trim() || !currentUserId || !donorId) return
 
     const chatRoomId = [currentUserId, donorId].sort().join("_")
@@ -345,10 +344,10 @@ export default function ChatPage() {
   }
 
   if (!donorId) {
-    // Show conversation list
+    // Show chat list for all the users.
     return (
       <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-lime-50 to-white flex">
-        {/* Mobile sidebar toggle */}
+        {/* Mobile sidebar toggle Fix*/}
         <div className="lg:hidden fixed top-4 left-4 z-50">
           <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white border-emerald-200 hover:bg-emerald-50">
             <Menu className="h-5 w-5" />

@@ -24,29 +24,69 @@ export default function SignupPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = event.target as HTMLFormElement;
-    const email = (form.elements.namedItem("email") as HTMLInputElement);
-    const password = (form.elements.namedItem("password") as HTMLInputElement);
-    const passwordConfirm = (form.elements.namedItem("password-confirm") as HTMLInputElement);
+    const form = event.currentTarget as HTMLFormElement;
+    const emailElement = form.elements.namedItem("email") as HTMLInputElement | null;
+    const passwordElement = form.elements.namedItem("password") as HTMLInputElement | null;
+    const passwordConfirmElement = form.elements.namedItem("password-confirm") as HTMLInputElement | null;
 
-    if (password.value !== passwordConfirm.value) {
+    if (!emailElement || !passwordElement || !passwordConfirmElement) {
+      setError("Form elements not found");
+      return;
+    }
+
+    const email = emailElement.value;
+    const password = passwordElement.value;
+    const passwordConfirm = passwordConfirmElement.value;
+
+    if (password !== passwordConfirm) {
       setError("Both passwords don't match");
       return;
     }
-    if (!passwordValidation(password.value)) {
+    if (!passwordValidation(password)) {
       setError("Password must be at least 6 characters, include 1 capital letter and 1 number.");
       return;
     }
     setError("");
 
     try {
-      const credential = await createUserWithEmailAndPassword(auth, email.value, password.value); 
+      // Check if auth is initialized
+      if (!auth) {
+        throw new Error("Firebase Auth is not initialized. Please check your configuration.");
+      }
+
+      console.log("Starting signup with email:", email);
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("Firebase signup successful, user UID:", credential.user.uid);
+      
       const token = await credential.user.getIdToken();
+      console.log("ID token obtained successfully");
+      
       if (token) {
         AuthTokenManager.setToken(token);
-        const secureFlag = window.location.protocol === "https:" ? "; secure" : "";
-        document.cookie = `authToken=${token}; path=/; max-age=3600; samesite=lax${secureFlag}`;
+        const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
+        document.cookie = `authToken=${token}; Path=/; Max-Age=3600; SameSite=Lax${secureFlag}`;
+        
+        // Create session on server
+        try {
+          console.log("Creating server session...");
+          const sessionResponse = await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken: token }),
+          });
+          
+          if (!sessionResponse.ok) {
+            console.warn("Session creation returned non-OK status:", sessionResponse.status);
+            // Don't throw - session creation failure shouldn't block signup
+          } else {
+            console.log("Server session created successfully");
+          }
+        } catch (sessionError) {
+          console.warn("Failed to create server session:", sessionError);
+          // Continue anyway - user is still authenticated via token
+        }
       }
+      
       setSuccessMsg("Signup successful! Redirecting...");
       setTimeout(() => {
         setSuccessMsg(null);
@@ -54,16 +94,44 @@ export default function SignupPage() {
       }, 1800);
     } catch (error) {
       console.error("Error signing up:", error);
+      console.error("Error details:", {
+        errorType: typeof error,
+        errorKeys: error instanceof Error ? Object.keys(error) : [],
+        errorString: String(error),
+      });
+      
       // Type guard for FirebaseError
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        (error as { code?: string }).code === "auth/email-already-in-use"
-      ) {
-        setError("User already exists");
+      if (typeof error === "object" && error !== null && "code" in error) {
+        const firebaseError = error as { code?: string; message?: string };
+        const errorCode = firebaseError.code;
+        
+        switch (errorCode) {
+          case "auth/email-already-in-use":
+            setError("This email is already registered. Please login instead.");
+            break;
+          case "auth/invalid-email":
+            setError("Invalid email address. Please check and try again.");
+            break;
+          case "auth/weak-password":
+            setError("Password is too weak. Please use a stronger password.");
+            break;
+          case "auth/operation-not-allowed":
+            setError("Signup is currently disabled. Please try again later.");
+            break;
+          case "auth/too-many-requests":
+            setError("Too many attempts. Please try again later.");
+            break;
+          case "auth/network-request-failed":
+            setError("Network error. Please check your connection and try again.");
+            break;
+          default:
+            setError(`Signup failed: ${firebaseError.message || "Please try again."}`);
+        }
+      } else if (error instanceof Error) {
+        // Handle Error objects
+        setError(error.message || "An unexpected error occurred during signup. Please try again.");
       } else {
-        setError("An error occurred during signup. Please try again.");
+        setError("An unexpected error occurred during signup. Please try again.");
       }
     }
   };
