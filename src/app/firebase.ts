@@ -5,6 +5,8 @@ import { getFirestore } from "firebase/firestore";
 import type { FirebaseOptions } from "firebase/app";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
+const isBrowser = typeof window !== "undefined";
+
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
@@ -26,13 +28,16 @@ const requiredConfig: Array<keyof FirebaseOptions> = [
 
 const missingConfig = requiredConfig.filter((key) => !firebaseConfig[key]);
 
-if (typeof window !== "undefined" && missingConfig.length > 0) {
+if (isBrowser && missingConfig.length > 0) {
   console.warn(
     `Missing required Firebase configuration: ${missingConfig.join(", ")}. Set NEXT_PUBLIC_FIREBASE_* variables in your environment before deploying.`
   );
 }
 
-// Initialize Firebase
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Initialize Firebase only in the browser so server prerendering can still succeed.
+const app = isBrowser && !missingConfig.length
+  ? (getApps().length ? getApp() : initializeApp(firebaseConfig))
+  : null;
+
+export const auth = app ? getAuth(app) : (undefined as unknown as ReturnType<typeof getAuth>);
+export const db = app ? getFirestore(app) : (undefined as unknown as ReturnType<typeof getFirestore>);
