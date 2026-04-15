@@ -26,9 +26,10 @@ const requiredConfig: Array<keyof FirebaseOptions> = [
 
 const missingConfig = requiredConfig.filter((key) => !firebaseConfig[key]);
 
-if (missingConfig.length > 0) {
-  const errorMessage = `Missing required Firebase configuration: ${missingConfig.join(", ")}. Set NEXT_PUBLIC_FIREBASE_* variables in your environment before deploying.`;
-  throw new Error(errorMessage);
+if (typeof window !== "undefined" && missingConfig.length > 0) {
+  console.warn(
+    `Missing required Firebase configuration: ${missingConfig.join(", ")}. Set NEXT_PUBLIC_FIREBASE_* variables in your environment before deploying.`
+  );
 }
 
 // Initialize Firebase
