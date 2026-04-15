@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { adminAuth } from '@/app/firebaseAdmin';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 
 // Protect routes: /dashboard, /admin, /edit-donation, /edit-profile, /chat
 const protectedRoutes = [
@@ -28,8 +29,14 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url));
       }
 
-      // Verify the token with Firebase Admin SDK
-      const decodedToken = await adminAuth.verifyIdToken(token, true); // checkRevoked = true
+      // The authToken cookie is a Firebase session cookie created by /api/auth/session.
+      // Validate as session cookie first, then fall back to ID token for backward compatibility.
+      let decodedToken: DecodedIdToken;
+      try {
+        decodedToken = await adminAuth.verifySessionCookie(token, true); // checkRevoked = true
+      } catch {
+        decodedToken = await adminAuth.verifyIdToken(token, true); // legacy ID token support
+      }
       
       // Check if this is an admin route
       if (adminRoutes.some(route => pathname.startsWith(route))) {

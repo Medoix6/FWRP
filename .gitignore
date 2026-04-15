@@ -1,5 +1,6 @@
 node_modules
-.env.local
+.env
+.env*.local
 serviceAccountKey.json
-fwrp-11fc3-firebase-adminsdk-fbsvc-998192835f.json
+*firebase-adminsdk-*.json
 .next/

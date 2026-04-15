@@ -34,6 +34,7 @@ export default function EditProfile() {
   const [cloudinaryReady] = useState(true)
   const [isAvatarUploading, setIsAvatarUploading] = useState(false)
   const [avatarSuccess, setAvatarSuccess] = useState<string | null>(null)
+  const [isProfileLoading, setIsProfileLoading] = useState(true)
 
   // Assume Cloudinary widget is ready (forcibly enable button)
   // If you want to keep the robust check, comment out the next line and restore the useEffect above
@@ -42,29 +43,43 @@ export default function EditProfile() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        setIsProfileLoading(true);
         setUser({
           displayName: firebaseUser.displayName || "No Username",
           email: firebaseUser.email || "No Email"
         });
-        const data = await getUserProfileData(firebaseUser.uid);
-        if (data) {
-          setProfileData({
-            fullName: data.name || "",
-            email: data.email || "",
-            phone: data.phone || "",
-            address: data.address || "",
-            city: data.city || "",
-            state: data.state || "",
-            postalCode: data.postalCode || "",
-            bio: data.bio || "",
-            avatar: data.avatar || "",
-          });
-          setIsAdmin(!!data.isAdmin);
-        } else {
+        try {
+          const data = await getUserProfileData(firebaseUser.uid) as Record<string, unknown> | null;
+          if (data) {
+            setProfileData({
+              fullName: (data.name as string) || (data.fullName as string) || firebaseUser.displayName || "",
+              email: (data.email as string) || firebaseUser.email || "",
+              phone: (data.phone as string) || "",
+              address: (data.address as string) || "",
+              city: (data.city as string) || "",
+              state: (data.state as string) || "",
+              postalCode: (data.postalCode as string) || "",
+              bio: (data.bio as string) || "",
+              avatar: (data.avatar as string) || "",
+            });
+            setIsAdmin(Boolean(data.isAdmin));
+          } else {
+            setProfileData((prev) => ({
+              ...prev,
+              fullName: firebaseUser.displayName || "",
+              email: firebaseUser.email || "",
+            }));
+            setIsAdmin(false);
+          }
+        } catch {
+          setErrorMsg("Could not load profile details. Please refresh and try again.");
           setIsAdmin(false);
+        } finally {
+          setIsProfileLoading(false);
         }
       } else {
         setIsAdmin(false);
+        setIsProfileLoading(false);
         window.location.href = "/login";
       }
     });
@@ -270,6 +285,10 @@ export default function EditProfile() {
     } finally {
       setIsPasswordSubmitting(false);
     }
+  }
+
+  if (isProfileLoading) {
+    return <LoadingSpinner size="lg" />;
   }
 
   return (
