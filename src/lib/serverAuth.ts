@@ -6,13 +6,15 @@ import { NextRequest } from 'next/server';
 import { adminAuth, adminDb } from '@/app/firebaseAdmin';
 import { AuthenticationError, ForbiddenError } from './apiError';
 
-export async function verifyIdToken(token: string) {
+type AuthTokenSource = 'authorization' | 'session-cookie';
+
+export async function verifyIdToken(token: string, checkRevoked = true) {
   if (!token) {
     throw new AuthenticationError('No token provided');
   }
 
   try {
-    const decodedToken = await adminAuth.verifyIdToken(token);
+    const decodedToken = await adminAuth.verifyIdToken(token, checkRevoked);
     return decodedToken;
   } catch (error) {
     console.error('Token verification failed:', error);
@@ -20,19 +22,31 @@ export async function verifyIdToken(token: string) {
   }
 }
 
-export async function getAuthTokenFromRequest(request: NextRequest): Promise<string> {
+export function getAuthTokenFromRequest(request: NextRequest): { token: string; source: AuthTokenSource } {
   const authHeader = request.headers.get('authorization');
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new AuthenticationError('Missing or invalid authorization header');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return { token: authHeader.slice(7), source: 'authorization' };
   }
 
-  const token = authHeader.slice(7); // Remove 'Bearer ' prefix
-  return token;
+  const cookieToken = request.cookies.get('authToken')?.value;
+  if (cookieToken) {
+    return { token: cookieToken, source: 'session-cookie' };
+  }
+
+  throw new AuthenticationError('Missing authentication token');
 }
 
 export async function verifyRequestAuth(request: NextRequest) {
-  const token = await getAuthTokenFromRequest(request);
+  const { token, source } = getAuthTokenFromRequest(request);
+  if (source === 'session-cookie') {
+    try {
+      return await adminAuth.verifySessionCookie(token, true);
+    } catch (error) {
+      console.error('Session cookie verification failed:', error);
+      throw new AuthenticationError('Invalid or expired session');
+    }
+  }
+
   return verifyIdToken(token);
 }
 

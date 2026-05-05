@@ -11,8 +11,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { auth } from "@/app/firebase"
-import { db } from "@/app/firebase"
+import { auth, db, firebaseInitError } from "@/app/firebase"
 import { loginUser, sendReset, ProfileMissingError } from "@/controllers/authController"
 import { AuthTokenManager } from "@/lib/clientAuth"
 
@@ -29,6 +28,14 @@ export default function Login() {
     setResetMsg(null);
     if (!resetEmail) {
       setResetMsg("Please enter your email address.");
+      return;
+    }
+    if (firebaseInitError) {
+      setResetMsg(firebaseInitError);
+      return;
+    }
+    if (!auth) {
+      setResetMsg("Firebase Auth is not initialized.");
       return;
     }
     try {
@@ -48,6 +55,14 @@ export default function Login() {
     setError("");
     if (!email || !password) {
       setError("Please enter both email and password");
+      return;
+    }
+    if (firebaseInitError) {
+      setError(firebaseInitError);
+      return;
+    }
+    if (!auth || !db) {
+      setError("Firebase is not initialized.");
       return;
     }
     try {

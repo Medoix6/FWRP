@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { v2 as cloudinary } from 'cloudinary';
 import { isRateLimited } from '@/lib/rateLimit';
 import { handleApiError, ValidationError, AuthenticationError, RateLimitError, createSuccessResponse } from '@/lib/apiError';
 import { validateFoodName, validateDescription, validateLocation, validateDate, validateFileType, validateFileSize } from '@/lib/validation';
 import { getUserFromAuth } from '@/lib/serverAuth';
 import { validateCsrfToken } from '@/lib/csrf';
-
-
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
-}
+import { adminDb } from '@/app/firebaseAdmin';
 
 
 cloudinary.config({
@@ -26,7 +14,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const db = getFirestore();
+const db = adminDb;
 const MAX_IMAGES = 4;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 

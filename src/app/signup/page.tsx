@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { auth } from "@/app/firebase";
+import { auth, firebaseInitError } from "@/app/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { AuthTokenManager } from "@/lib/clientAuth";
 
@@ -50,8 +50,11 @@ export default function SignupPage() {
 
     try {
       // Check if auth is initialized
+      if (firebaseInitError) {
+        throw new Error(firebaseInitError);
+      }
       if (!auth) {
-        throw new Error("Firebase Auth is not initialized. Please check your configuration.");
+        throw new Error("Firebase Auth is not initialized.");
       }
 
       console.log("Starting signup with email:", email);
@@ -63,8 +66,6 @@ export default function SignupPage() {
       
       if (token) {
         AuthTokenManager.setToken(token);
-        const secureFlag = window.location.protocol === "https:" ? "; Secure" : "";
-        document.cookie = `authToken=${token}; Path=/; Max-Age=3600; SameSite=Lax${secureFlag}`;
         
         // Create session on server
         try {

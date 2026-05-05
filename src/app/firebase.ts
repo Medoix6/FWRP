@@ -28,10 +28,12 @@ const requiredConfig: Array<keyof FirebaseOptions> = [
 
 const missingConfig = requiredConfig.filter((key) => !firebaseConfig[key]);
 
-if (isBrowser && missingConfig.length > 0) {
-  console.warn(
-    `Missing required Firebase configuration: ${missingConfig.join(", ")}. Set NEXT_PUBLIC_FIREBASE_* variables in your environment before deploying.`
-  );
+export const firebaseInitError = missingConfig.length > 0
+  ? `Missing required Firebase configuration: ${missingConfig.join(", ")}. Set NEXT_PUBLIC_FIREBASE_* variables in your environment.`
+  : null;
+
+if (isBrowser && firebaseInitError) {
+  console.warn(firebaseInitError);
 }
 
 // Initialize Firebase only in the browser so server prerendering can still succeed.
