@@ -49,12 +49,9 @@ export default function EditDonation() {
     email: "",
     avatar: ""
   })
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
 
   // Load existing donation data from API
   useEffect(() => {
-    if (!mounted) return;
     const loadDonation = async () => {
       try {
         const donation = await fetchDonationById(donationId);
@@ -81,11 +78,10 @@ export default function EditDonation() {
       }
     };
     if (donationId) loadDonation();
-  }, [donationId, router, mounted]);
+  }, [donationId, router]);
 
   // Fetch user profile (same as dashboard)
   useEffect(() => {
-    if (!mounted) return;
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const profile = await getUserProfile(firebaseUser);
@@ -99,7 +95,7 @@ export default function EditDonation() {
       }
     });
     return () => unsubscribe();
-  }, [mounted]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target

@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@cloudinary/react": "^1.14.3",
@@ -21,13 +21,13 @@
     "cloudinary": "^2.6.1",
     "clsx": "^2.1.1",
     "firebase": "^11.7.3",
-    "firebase-admin": "^10.3.0",
+    "firebase-admin": "^13.10.0",
     "lucide-react": "^0.475.0",
-    "next": "^15.5.14",
-    "react": "^18.0.0",
+    "next": "^16.2.6",
+    "react": "^19.2.6",
     "react-avatar": "^5.0.3",
     "react-chartjs-2": "^5.3.0",
-    "react-dom": "^18.0.0",
+    "react-dom": "^19.2.6",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -37,9 +37,15 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.12",
-    "postcss": "^8",
+    "eslint-config-next": "^16.2.6",
+    "postcss": "^8.5.10",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@google-cloud/firestore": "8.6.0",
+    "google-gax": "5.0.6",
+    "@tootallnate/once": "^3.0.1",
+    "postcss": "^8.5.10"
   }
 }

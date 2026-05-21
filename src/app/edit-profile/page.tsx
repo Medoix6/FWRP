@@ -35,6 +35,20 @@ export default function EditProfile() {
   const [isAvatarUploading, setIsAvatarUploading] = useState(false)
   const [avatarSuccess, setAvatarSuccess] = useState<string | null>(null)
   const [isProfileLoading, setIsProfileLoading] = useState(true)
+  const [profileData, setProfileData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    bio: "",
+    avatar: "",
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   // Assume Cloudinary widget is ready (forcibly enable button)
   // If you want to keep the robust check, comment out the next line and restore the useEffect above
@@ -106,21 +120,6 @@ export default function EditProfile() {
 
     return () => unsubscribe();
   }, [user.email]);
-
-  const [profileData, setProfileData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    bio: "",
-    avatar: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [unreadCount, setUnreadCount] = useState(0)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
