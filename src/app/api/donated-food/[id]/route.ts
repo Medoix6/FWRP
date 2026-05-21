@@ -5,7 +5,7 @@ import { handleApiError, ValidationError, RateLimitError } from "@/lib/apiError"
 import { validateFoodName, validateDescription, validateLocation, validateDate, validateFileType, validateFileSize } from "@/lib/validation";
 import { isRateLimited } from "@/lib/rateLimit";
 import { validateCsrfToken } from "@/lib/csrf";
-import { adminDb } from "@/app/firebaseAdmin";
+import { getAdminDb } from "@/app/firebaseAdmin";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -13,7 +13,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const db = adminDb;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_IMAGES = 4;
 
@@ -23,6 +22,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
+    const db = getAdminDb();
     const clientId = request.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`get-donation-${clientId}`)) {
       throw new RateLimitError(300);
@@ -59,6 +59,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
+    const db = getAdminDb();
     const clientId = request.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`patch-donation-${clientId}`)) {
       throw new RateLimitError(300);
@@ -193,6 +194,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
+    const db = getAdminDb();
     const clientId = request.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`delete-donation-${clientId}`)) {
       throw new RateLimitError(300);

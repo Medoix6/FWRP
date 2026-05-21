@@ -3,15 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleApiError, ValidationError, createSuccessResponse, RateLimitError } from "@/lib/apiError";
 import { isRateLimited } from "@/lib/rateLimit";
 import { getUserFromAuth } from "@/lib/serverAuth";
-import { adminDb } from "@/app/firebaseAdmin";
-
-const db = adminDb;
+import { getAdminDb } from "@/app/firebaseAdmin";
 
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const db = getAdminDb();
     const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`get-user-${clientId}`)) {
       throw new RateLimitError(300);

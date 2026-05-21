@@ -3,7 +3,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { adminAuth, adminDb } from '@/app/firebaseAdmin';
+import { getAdminAuth, getAdminDb } from '@/app/firebaseAdmin';
 import { AuthenticationError, ForbiddenError } from './apiError';
 
 type AuthTokenSource = 'authorization' | 'session-cookie';
@@ -14,6 +14,7 @@ export async function verifyIdToken(token: string, checkRevoked = true) {
   }
 
   try {
+    const adminAuth = getAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(token, checkRevoked);
     return decodedToken;
   } catch (error) {
@@ -40,6 +41,7 @@ export async function verifyRequestAuth(request: NextRequest) {
   const { token, source } = getAuthTokenFromRequest(request);
   if (source === 'session-cookie') {
     try {
+      const adminAuth = getAdminAuth();
       return await adminAuth.verifySessionCookie(token, true);
     } catch (error) {
       console.error('Session cookie verification failed:', error);
@@ -54,6 +56,7 @@ export async function verifyAdminAuth(request: NextRequest) {
   const decodedToken = await verifyRequestAuth(request);
   
   // Check if user is admin
+  const adminDb = getAdminDb();
   const userDoc = await adminDb.collection('users').doc(decodedToken.uid).get();
   
   if (!userDoc.exists || !userDoc.data()?.isAdmin) {
@@ -67,6 +70,7 @@ export async function getUserFromAuth(request: NextRequest) {
   const decodedToken = await verifyRequestAuth(request);
   
   // Get user data from Firestore
+  const adminDb = getAdminDb();
   const userDoc = await adminDb.collection('users').doc(decodedToken.uid).get();
   
   if (!userDoc.exists) {

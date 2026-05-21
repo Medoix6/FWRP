@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb, adminAuth } from "@/app/firebaseAdmin";
+import { getAdminDb, getAdminAuth } from "@/app/firebaseAdmin";
 import { handleApiError, ValidationError, AuthenticationError, createSuccessResponse, RateLimitError } from "@/lib/apiError";
 import { verifyAdminAuth, getUserFromAuth } from "@/lib/serverAuth";
 import { isRateLimited } from "@/lib/rateLimit";
@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
     // Verify admin access
     await verifyAdminAuth(req);
 
+    const adminDb = getAdminDb();
     const usersCol = adminDb.collection("users");
     const snapshot = await usersCol.limit(100).get();
     const users = snapshot.docs.map((doc) => {
@@ -82,6 +83,7 @@ export async function PATCH(req: NextRequest) {
 
     updateData.updatedAt = new Date().toISOString();
 
+    const adminDb = getAdminDb();
     const userRef = adminDb.collection("users").doc(id);
     await userRef.update(updateData);
 
@@ -119,10 +121,12 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Delete user document from Firestore
+    const adminDb = getAdminDb();
     await adminDb.collection("users").doc(id).delete();
 
     // Delete user from Firebase Authentication
     try {
+      const adminAuth = getAdminAuth();
       await adminAuth.deleteUser(id);
     } catch (error) {
       console.error("Error deleting Firebase Auth user:", error);

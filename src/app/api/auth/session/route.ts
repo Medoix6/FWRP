@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth } from '@/app/firebaseAdmin';
+import { getAdminAuth } from '@/app/firebaseAdmin';
 
 /**
  * POST /api/auth/session
@@ -7,6 +7,7 @@ import { adminAuth } from '@/app/firebaseAdmin';
  */
 export async function POST(request: NextRequest) {
   try {
+    const adminAuth = getAdminAuth();
     const { idToken } = await request.json();
 
     if (!idToken) {
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    const adminAuth = getAdminAuth();
     const token = request.cookies.get('authToken')?.value;
 
     // Revoke all refresh tokens for the user if token exists

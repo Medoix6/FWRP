@@ -5,7 +5,7 @@ import { handleApiError, ValidationError, AuthenticationError, RateLimitError, c
 import { validateFoodName, validateDescription, validateLocation, validateDate, validateFileType, validateFileSize } from '@/lib/validation';
 import { getUserFromAuth } from '@/lib/serverAuth';
 import { validateCsrfToken } from '@/lib/csrf';
-import { adminDb } from '@/app/firebaseAdmin';
+import { getAdminDb } from '@/app/firebaseAdmin';
 
 
 cloudinary.config({
@@ -14,12 +14,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const db = adminDb;
 const MAX_IMAGES = 4;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 export async function POST(req: NextRequest) {
   try {
+    const db = getAdminDb();
     // Rate limiting
     const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`donate-${clientId}`)) {
@@ -128,6 +128,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    const db = getAdminDb();
     // Rate limiting
     const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`get-donations-${clientId}`)) {
@@ -156,6 +157,7 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const db = getAdminDb();
     // Rate limiting
     const clientId = req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(`delete-donation-${clientId}`)) {
