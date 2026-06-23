@@ -16,10 +16,12 @@
     "@radix-ui/react-radio-group": "^1.2.3",
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-switch": "^1.2.5",
+    "browser-image-compression": "^2.0.2",
     "chart.js": "^4.5.0",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.6.1",
     "clsx": "^2.1.1",
+    "dompurify": "^3.4.11",
     "firebase": "^11.7.3",
     "firebase-admin": "^13.10.0",
     "lucide-react": "^0.475.0",
@@ -28,12 +30,14 @@
     "react-avatar": "^5.0.3",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.2.6",
+    "react-hot-toast": "^2.6.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@netlify/plugin-nextjs": "^5.15.11",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -47,6 +51,7 @@
     "@google-cloud/firestore": "8.6.0",
     "google-gax": "5.0.6",
     "@tootallnate/once": "^3.0.1",
-    "postcss": "^8.5.10"
+    "postcss": "^8.5.10",
+    "uuid": "11.1.1"
   }
 }

@@ -1,3 +1,4 @@
+@import "../styles/tokens.css";
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
 @tailwind base;
@@ -178,3 +179,90 @@
     transform: translateY(0);
   }
 }
+
+/* Premium Loader Animations */
+@layer utilities {
+  .animate-spin-reverse {
+    animation: spin-reverse 6s linear infinite;
+  }
+  .animate-pulse-scale {
+    animation: pulse-scale 3s ease-in-out infinite;
+  }
+  .animate-blob-float-1 {
+    animation: blob-float 12s ease-in-out infinite;
+  }
+  .animate-blob-float-2 {
+    animation: blob-float 16s ease-in-out infinite 2s;
+  }
+}
+
+@keyframes spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes blob-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.15);
+  }
+  66% {
+    transform: translate(-30px, 20px) scale(0.9);
+  }
+}
+
+@keyframes shimmer-slide {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Landing Page Animations */
+@layer utilities {
+  .animate-fade-in-right {
+    animation: fade-in-right 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-float-subtle {
+    animation: float-subtle 8s ease-in-out infinite;
+  }
+}
+
+@keyframes fade-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float-subtle {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+}
+
+

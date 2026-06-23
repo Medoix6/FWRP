@@ -66,6 +66,54 @@ export function validateDate(dateString: string): string {
   return dateString;
 }
 
+export function validateCategory(category: string): string {
+  const sanitized = sanitizeString(category, 50);
+  if (sanitized.length < 2) {
+    throw new Error('Category must be at least 2 characters');
+  }
+  return sanitized;
+}
+
+export function validateServings(servings: number): number {
+  if (!Number.isFinite(servings) || servings <= 0) {
+    throw new Error('Servings must be a positive number');
+  }
+  if (servings > 1000) {
+    throw new Error('Servings cannot exceed 1000');
+  }
+  return Math.round(servings);
+}
+
+export function validateAllergens(allergens: string): string[] {
+  if (!allergens) return [];
+  const parts = allergens
+    .split(',')
+    .map((item) => sanitizeString(item, 50))
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (parts.length > 20) {
+    throw new Error('Too many allergens listed');
+  }
+  return parts;
+}
+
+export function validatePackaging(packaging: string): string {
+  const sanitized = sanitizeString(packaging, 100);
+  if (sanitized.length < 2) {
+    throw new Error('Packaging must be at least 2 characters');
+  }
+  return sanitized;
+}
+
+export function validatePickupWindow(windowValue: string): string {
+  const sanitized = sanitizeString(windowValue, 10);
+  const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+  if (!timeRegex.test(sanitized)) {
+    throw new Error('Pickup window must be in HH:MM format');
+  }
+  return sanitized;
+}
+
 export function validatePassword(password: string): boolean {
   // At least 6 characters, 1 uppercase, 1 number
   return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password);

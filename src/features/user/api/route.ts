@@ -28,6 +28,9 @@ export async function GET(req: NextRequest) {
         name: data.name,
         avatar: data.avatar,
         isAdmin: data.isAdmin,
+        isVerified: data.isVerified,
+        ratingAverage: data.ratingAverage || 0,
+        ratingCount: data.ratingCount || 0,
         createdAt: data.createdAt,
       };
     });
@@ -73,10 +76,13 @@ export async function PATCH(req: NextRequest) {
       'avatar',
       'bio',
     ];
-    const updateData: Record<string, string | Date> = {};
+    const updateData: Record<string, string | Date | boolean> = {};
     
     for (const [key, value] of Object.entries(data)) {
       if (allowedFields.includes(key) && typeof value === 'string') {
+        updateData[key] = value;
+      }
+      if (key === 'isVerified' && isAdmin && typeof value === 'boolean') {
         updateData[key] = value;
       }
     }

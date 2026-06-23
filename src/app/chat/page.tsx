@@ -14,8 +14,10 @@ import { auth, db } from "@/app/firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { doc, getDoc, setDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp, getDocs, limit, where, writeBatch } from "firebase/firestore"
 import { AuthTokenManager } from "@/lib/clientAuth"
+import { getCsrfHeaders } from "@/lib/clientCsrf"
 import { LoadingScreen, LoadingSpinner } from "@/components/Loading"
 import { logout } from "@/lib/logout"
+import Sidebar from "@/components/Sidebar";
 
 interface Message {
   id: string
@@ -45,13 +47,14 @@ interface Conversation {
   lastTimestamp: Timestamp | null
   otherUserName: string
   otherUserAvatar: string
+  donationId?: string
+  donationTitle?: string
 }
 
 export default function ChatPage() {
   const searchParams = useSearchParams()
   const donorId = searchParams?.get("donorId") || null
-  // donationId can be used later for context about the donation
-  // const donationId = searchParams?.get("donationId") || null
+  const donationId = searchParams?.get("donationId") || null
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -67,10 +70,11 @@ export default function ChatPage() {
     avatar: "",
     phone: ""
   })
+  const [donationInfo, setDonationInfo] = useState<{ id: string; foodName?: string; status?: string; location?: string; imageUrl?: string; reservedBy?: string | null; userId?: string } | null>(null)
+  const [donationLoading, setDonationLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loadingConversations, setLoadingConversations] = useState(true)
-  const [unreadCount, setUnreadCount] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -103,26 +107,7 @@ export default function ChatPage() {
     return () => unsubscribe()
   }, [])
 
-  // Listen for unread messages
-  useEffect(() => {
-    if (!profileData.email) return;
 
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-
-    const messagesRef = collection(db, "messages");
-    const unreadQuery = query(
-      messagesRef,
-      where("receiverId", "==", currentUser.uid),
-      where("status", "in", ["sent", "delivered"])
-    );
-
-    const unsubscribe = onSnapshot(unreadQuery, (snapshot) => {
-      setUnreadCount(snapshot.size);
-    });
-
-    return () => unsubscribe();
-  }, [profileData.email]);
 
   // Fetch donor info
   useEffect(() => {
@@ -157,6 +142,38 @@ export default function ChatPage() {
 
     fetchDonorInfo()
   }, [donorId])
+
+  useEffect(() => {
+    const fetchDonationInfo = async () => {
+      if (!donationId) return
+      setDonationLoading(true)
+      try {
+        const authHeader = AuthTokenManager.getAuthHeader()
+        const res = await fetch(`/api/donated-food/${donationId}`, {
+          headers: {
+            ...(authHeader || {}),
+          },
+        })
+        if (!res.ok) return
+        const payload = await res.json()
+        const data = payload.data || payload
+        setDonationInfo({
+          id: data.id,
+          foodName: data.foodName,
+          status: data.status,
+          location: data.location,
+          imageUrl: (data.imageUrls && data.imageUrls[0]) || data.imageUrl || "",
+          reservedBy: data.reservedBy || null,
+          userId: data.userId,
+        })
+      } catch (error) {
+        console.error("Error fetching donation info:", error)
+      } finally {
+        setDonationLoading(false)
+      }
+    }
+    fetchDonationInfo()
+  }, [donationId])
 
   // Fetch all conversations for the current user with real-time updates
   useEffect(() => {
@@ -223,7 +240,9 @@ export default function ChatPage() {
                     lastMessage,
                     lastTimestamp,
                     otherUserName: otherUser.name || "User",
-                    otherUserAvatar: otherUser.avatar || ""
+                    otherUserAvatar: otherUser.avatar || "",
+                    donationId: chatData.donationId,
+                    donationTitle: chatData.donationTitle,
                   })
                 }
               } catch (error) {
@@ -321,7 +340,9 @@ export default function ChatPage() {
         participants: [currentUserId, donorId].sort(),
         lastMessage: newMessage.trim(),
         lastTimestamp: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        donationId: donationId || null,
+        donationTitle: donationInfo?.foodName || ""
       }, { merge: true })
 
       // Add the message to the messages subcollection with status
@@ -332,10 +353,70 @@ export default function ChatPage() {
         timestamp: serverTimestamp(),
         status: "sent"
       })
+      const csrfHeaders = await getCsrfHeaders()
+      await fetch("/api/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(AuthTokenManager.getAuthHeader() || {}),
+          ...csrfHeaders,
+        },
+        body: JSON.stringify({
+          receiverId: donorId,
+          message: newMessage.trim(),
+          donationId: donationId || undefined,
+        }),
+      })
       setNewMessage("")
     } catch (error) {
       console.error("Error sending message:", error)
       alert("Failed to send message. Please try again.")
+    }
+  }
+
+  const handleDonationAction = async (action: string) => {
+    if (!donationId) return
+    try {
+      const csrfHeaders = await getCsrfHeaders()
+      const res = await fetch(`/api/donated-food/${donationId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(AuthTokenManager.getAuthHeader() || {}),
+          ...csrfHeaders,
+        },
+        body: JSON.stringify({ action }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data?.error?.message || data?.error || "Action failed")
+      }
+      if (donationId) {
+        const refreshed = await fetch(`/api/donated-food/${donationId}`, {
+          headers: {
+            ...(AuthTokenManager.getAuthHeader() || {}),
+          },
+        })
+        if (refreshed.ok) {
+          const payload = await refreshed.json()
+          const data = payload.data || payload
+          setDonationInfo({
+            id: data.id,
+            foodName: data.foodName,
+            status: data.status,
+            location: data.location,
+            imageUrl: (data.imageUrls && data.imageUrls[0]) || data.imageUrl || "",
+            reservedBy: data.reservedBy || null,
+            userId: data.userId,
+          })
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message)
+      } else {
+        alert("Action failed")
+      }
     }
   }
 
@@ -355,74 +436,7 @@ export default function ChatPage() {
         </div>
 
         {/* Sidebar */}
-        <div
-          className={`
-          fixed inset-y-0 left-0 z-40 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-100 transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
-        `}
-        >
-          <div className="flex flex-col h-full">
-            <div className="p-6 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-lime-50">
-              <h2 className="text-2xl font-bold text-emerald-600">FWRP</h2>
-            </div>
-
-            <div className="flex-1 py-6 px-4 space-y-6">
-              <div className="flex flex-col items-center space-y-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={profileData.avatar || "/placeholder.svg?height=80&width=80"} alt="Profile" />
-                  <AvatarFallback>
-                    <User className="h-10 w-10" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center">
-                  <h3 className="font-medium">{profileData.fullName}</h3>
-                  <p className="text-sm text-gray-500">{profileData.email}</p>
-                </div>
-              </div>
-
-              <nav className="mt-8 space-y-2">
-                <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                  <Settings className="h-5 w-5 mr-3" />
-                  Show Profile
-                </Link>
-                <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                  <Home className="h-5 w-5 mr-3" />
-                  Dashboard
-                </Link>
-                <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                  <Gift className="h-5 w-5 mr-3" />
-                  Donate Food
-                </Link>
-                <Link href="/chat" className="flex items-center p-3 bg-emerald-100 text-emerald-700 rounded-xl font-medium">
-                  <MessageCircle className="h-5 w-5 mr-3" />
-                  <span className="flex-1">Chat</span>
-                  {unreadCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </Link>
-              </nav>
-            </div>
-
-            <div className="p-4 border-t border-emerald-100">
-              <Button
-                variant="outline"
-                className="w-full justify-start border-emerald-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
-                onClick={async () => {
-                  try {
-                    await logout();
-                  } catch {
-                    alert("Failed to sign out. Please try again.");
-                  }
-                }}
-              >
-                <LogOut className="h-5 w-5 mr-3" />
-                Sign out
-              </Button>
-            </div>
-          </div>
-        </div>
+        <Sidebar activePath="/chat" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         {/* Main content - Conversation List */}
         <div className="flex-1 lg:ml-64 flex flex-col h-screen">
@@ -458,7 +472,7 @@ export default function ChatPage() {
                   {conversations.map((conv) => (
                     <Link
                       key={conv.odId}
-                      href={`/chat?donorId=${conv.odUserId}`}
+                      href={`/chat?donorId=${conv.odUserId}${conv.donationId ? `&donationId=${conv.donationId}` : ""}`}
                       className="flex items-center p-4 bg-white/90 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all"
                     >
                       <Avatar className="h-12 w-12 mr-4">
@@ -470,6 +484,9 @@ export default function ChatPage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-gray-900 truncate">{conv.otherUserName}</h3>
                         <p className="text-sm text-gray-500 truncate">{conv.lastMessage || "No messages yet"}</p>
+                        {conv.donationTitle && (
+                          <p className="text-xs text-emerald-600 truncate">Donation: {conv.donationTitle}</p>
+                        )}
                       </div>
                       {conv.lastTimestamp && (
                         <span className="text-xs text-gray-400">
@@ -502,74 +519,7 @@ export default function ChatPage() {
       </div>
 
       {/* Sidebar */}
-      <div
-        className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-100 transform transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
-      `}
-      >
-        <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-lime-50">
-            <h2 className="text-2xl font-bold text-emerald-600">FWRP</h2>
-          </div>
-
-          <div className="flex-1 py-6 px-4 space-y-6">
-            <div className="flex flex-col items-center space-y-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={profileData.avatar || "/placeholder.svg?height=80&width=80"} alt="Profile" />
-                <AvatarFallback>
-                  <User className="h-10 w-10" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-center">
-                <h3 className="font-medium">{profileData.fullName}</h3>
-                <p className="text-sm text-gray-500">{profileData.email}</p>
-              </div>
-            </div>
-
-            <nav className="mt-8 space-y-2">
-              <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                <Settings className="h-5 w-5 mr-3" />
-                Show Profile
-              </Link>
-              <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                <Home className="h-5 w-5 mr-3" />
-                Dashboard
-              </Link>
-              <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                <Gift className="h-5 w-5 mr-3" />
-                Donate Food
-              </Link>
-              <Link href="/chat" className="flex items-center p-3 bg-emerald-100 text-emerald-700 rounded-xl font-medium">
-                <MessageCircle className="h-5 w-5 mr-3" />
-                <span className="flex-1">Chat</span>
-                {unreadCount > 0 && (
-                  <span className="ml-auto bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </Link>
-            </nav>
-          </div>
-
-          <div className="p-4 border-t border-emerald-100">
-            <Button
-              variant="outline"
-              className="w-full justify-start border-emerald-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
-              onClick={async () => {
-                try {
-                  await logout();
-                } catch {
-                  alert("Failed to sign out. Please try again.");
-                }
-              }}
-            >
-              <LogOut className="h-5 w-5 mr-3" />
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </div>
+      <Sidebar activePath="/chat" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main content */}
       <div className="flex-1 lg:ml-64 flex flex-col h-screen">
@@ -601,6 +551,45 @@ export default function ChatPage() {
         {/* Messages area */}
         <main className="flex-1 overflow-y-auto p-4 bg-transparent">
           <div className="max-w-3xl mx-auto space-y-4">
+            {donationId && (
+              <div className="bg-white/90 rounded-2xl border border-emerald-100 p-4 shadow-sm">
+                {donationLoading ? (
+                  <div className="text-sm text-gray-500">Loading donation details...</div>
+                ) : donationInfo ? (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                      {donationInfo.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={donationInfo.imageUrl} alt="Donation" className="h-16 w-16 rounded-lg object-cover" />
+                      ) : (
+                        <div className="h-16 w-16 rounded-lg bg-gray-200" />
+                      )}
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold">{donationInfo.foodName || "Donation"}</div>
+                        <div className="text-xs text-gray-500">{donationInfo.location}</div>
+                        <div className="text-xs text-emerald-700 capitalize">{donationInfo.status?.replace("_", " ") || "available"}</div>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {donationInfo.status === "available" && donationInfo.userId !== currentUserId && (
+                        <Button size="sm" onClick={() => handleDonationAction("reserve")}>Reserve</Button>
+                      )}
+                      {donationInfo.status === "reserved" && donationInfo.reservedBy === currentUserId && (
+                        <Button size="sm" variant="outline" onClick={() => handleDonationAction("cancel_reservation")}>Cancel Reservation</Button>
+                      )}
+                      {donationInfo.status === "reserved" && donationInfo.userId === currentUserId && (
+                        <Button size="sm" onClick={() => handleDonationAction("mark_picked_up")}>Mark Picked Up</Button>
+                      )}
+                      {donationInfo.userId === currentUserId && (donationInfo.status === "available" || donationInfo.status === "reserved") && (
+                        <Button size="sm" variant="destructive" onClick={() => handleDonationAction("cancel_donation")}>Cancel Donation</Button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500">Donation details unavailable.</div>
+                )}
+              </div>
+            )}
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 py-10 bg-white/80 rounded-3xl border border-emerald-100 shadow-sm">
                 <MessageCircle className="h-12 w-12 mx-auto mb-4 text-emerald-200" />

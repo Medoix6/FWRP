@@ -1,64 +1,132 @@
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { CheckCircle2 } from "lucide-react"
+"use client";
+
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { CheckCircle2, HeartHandshake, ShieldCheck, BadgeAlert, Sparkles, Check } from "lucide-react";
 
 export default function CallToAction() {
+  const { user } = useAuth();
+
   return (
-    <section className="relative overflow-hidden bg-emerald-700">
+    <section className="relative overflow-hidden bg-emerald-700 dark:bg-emerald-900 transition-colors duration-500">
       <div className="absolute inset-0 hero-grid opacity-20" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-        <div className="grid gap-10 lg:grid-cols-[1.1fr,0.9fr] items-center">
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 relative z-10">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr,0.9fr] items-center">
+          
+          {/* CTA Left Column: Message & Checkpoints */}
           <div className="text-white space-y-6">
-            <h2 className="font-display text-3xl sm:text-4xl">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600/60 border border-emerald-500 px-3 py-1 text-xs text-lime-200">
+              <Sparkles className="h-3.5 w-3.5" />
+              Impact Tracker
+            </div>
+            
+            <h2 className="font-display text-3xl sm:text-4xl leading-tight">
               Ready to reduce food waste and grow your impact?
             </h2>
-            <p className="text-lg text-emerald-100 max-w-xl">
-              Launch your first donation in minutes, coordinate pickups, and keep your community informed with live
-              updates.
+            <p className="text-lg text-emerald-100 max-w-xl leading-relaxed">
+              Launch your first donation listing in minutes, coordinate pickups with local charities, and track your organic carbon savings in real time.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2 text-sm">
-              {["Verified partners", "Instant pickup alerts", "Impact dashboards", "Secure messaging"].map((item) => (
+            
+            {/* Checklist */}
+            <div className="grid gap-3 sm:grid-cols-2 text-sm pt-2">
+              {[
+                "Verified partners", 
+                "Instant pickup notifications", 
+                "CO₂ impact tracking", 
+                "Encrypted inbox messaging"
+              ].map((item) => (
                 <div key={item} className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-lime-200" />
-                  <span>{item}</span>
+                  <CheckCircle2 className="h-4.5 w-4.5 text-lime-300 flex-shrink-0" />
+                  <span className="font-medium text-emerald-50">{item}</span>
                 </div>
               ))}
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/signup" passHref>
-                <Button className="w-full sm:w-auto bg-white text-emerald-700 hover:bg-emerald-50">
-                  Sign Up for Free
-                </Button>
-              </Link>
-              <Link href="/learn-more" passHref>
-                <Button variant="outline" className="w-full sm:w-auto border-white/40 text-white hover:bg-white/10">
+
+            {/* Dynamic Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              {user ? (
+                <Link href="/donate-food" passHref className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto bg-white hover:bg-emerald-50 text-emerald-800 rounded-2xl shadow-lg shadow-emerald-950/10 font-bold transition-all duration-200">
+                    Donate Food Now
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/signup" passHref className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto bg-white hover:bg-emerald-50 text-emerald-800 rounded-2xl shadow-lg shadow-emerald-950/10 font-bold transition-all duration-200">
+                    Sign Up for Free
+                  </Button>
+                </Link>
+              )}
+              <Link href="/learn-more" passHref className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto border-white/30 hover:border-white/50 text-white hover:bg-white/10 rounded-2xl font-bold transition-all duration-200">
                   See How It Works
                 </Button>
               </Link>
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white/10 border border-white/20 p-6 shadow-lg">
-            <div className="rounded-2xl bg-white px-5 py-6">
-              <p className="text-sm font-semibold text-gray-900">Donation snapshot</p>
-              <div className="mt-4 space-y-4">
+          {/* CTA Right Column: Visual Dashboard Mockup (Matching App Layout) */}
+          <div className="rounded-3xl bg-white/10 dark:bg-black/20 border border-white/20 p-6 shadow-xl relative transition-transform hover:scale-[1.01] duration-300">
+            <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-150 dark:border-neutral-800 p-5 space-y-4">
+              
+              {/* Snapshot header */}
+              <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-neutral-800">
                 <div>
-                  <p className="text-xs text-gray-500">Pickup window</p>
-                  <p className="text-lg font-semibold text-gray-900">Set clear pickup times</p>
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400">Active Listing</p>
+                  <h4 className="text-sm font-extrabold text-gray-900 dark:text-white">Donation Snapshot</h4>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500">Items reserved</p>
-                  <p className="text-lg font-semibold text-gray-900">Track reserved donations</p>
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-lg flex items-center gap-1">
+                  <Check className="h-3 w-3" />
+                  Reserved
+                </span>
+              </div>
+
+              {/* Snapshot details */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-400 dark:text-gray-500">Items:</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200">Fresh Apple & Banana Crates</span>
                 </div>
-                <div className="rounded-xl bg-emerald-50 px-4 py-3">
-                  <p className="text-xs text-emerald-700">Carbon savings</p>
-                  <p className="text-xl font-semibold text-emerald-700">Measure real impact</p>
+                
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-400 dark:text-gray-500">Donor:</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200">Downtown Fresh Market</span>
+                </div>
+
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-400 dark:text-gray-500">Recipient:</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200">Hope Community Kitchen</span>
+                </div>
+
+                {/* Pickup badge */}
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-850">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <p className="text-[11px] font-semibold text-gray-600 dark:text-gray-300">Pickup Scheduled</p>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">1:30 PM Today</span>
+                </div>
+
+                {/* Eco Impact stats */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 px-3 py-2 border border-emerald-100/50 dark:border-emerald-950/50 text-center">
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase">Weight</p>
+                    <p className="text-sm font-black text-emerald-800 dark:text-emerald-350">140 lbs</p>
+                  </div>
+                  <div className="rounded-xl bg-lime-50/50 dark:bg-lime-950/20 px-3 py-2 border border-lime-100/50 dark:border-lime-950/50 text-center">
+                    <p className="text-[10px] text-lime-700 dark:text-lime-400 font-bold uppercase">CO₂ Offset</p>
+                    <p className="text-sm font-black text-lime-800 dark:text-lime-350">320 lbs</p>
+                  </div>
                 </div>
               </div>
+
             </div>
           </div>
+
         </div>
       </div>
     </section>
-  )
+  );
 }

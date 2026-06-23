@@ -21,6 +21,7 @@ import { AuthTokenManager } from "@/lib/clientAuth"
 import { getCsrfHeaders } from "@/lib/clientCsrf"
 import { LoadingScreen, LoadingSpinner } from "@/components/Loading"
 import { logout } from "@/lib/logout"
+import Sidebar from "@/components/Sidebar";
 
 interface ImagePreview {
   id: string;
@@ -39,7 +40,14 @@ export default function EditDonation() {
     location: "",
     expiryDate: "",
     pickupInstructions: "",
+    category: "other",
+    quantityServings: "",
+    allergens: "",
+    packaging: "",
+    pickupWindowStart: "",
+    pickupWindowEnd: "",
   })
+  const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -61,7 +69,16 @@ export default function EditDonation() {
           location: donation.location || "",
           expiryDate: donation.expiryDate || "",
           pickupInstructions: donation.pickupInstructions || "",
+          category: donation.category || "other",
+          quantityServings: donation.quantityServings ? String(donation.quantityServings) : "",
+          allergens: Array.isArray(donation.allergens) ? donation.allergens.join(", ") : "",
+          packaging: donation.packaging || "",
+          pickupWindowStart: donation.pickupWindowStart || "",
+          pickupWindowEnd: donation.pickupWindowEnd || "",
         });
+        if (donation.locationCoords) {
+          setLocationCoords(donation.locationCoords);
+        }
         // Handle both old imageUrl (string) and new imageUrls (array) formats
         const existingImages = (donation.imageUrls || (donation.imageUrl ? [donation.imageUrl] : [])) as string[];
         const loadedImages: ImagePreview[] = existingImages.slice(0, 4).map((url, index) => ({
@@ -146,6 +163,18 @@ export default function EditDonation() {
       form.append("location", formData.location);
       form.append("expiryDate", formData.expiryDate);
       form.append("pickupInstructions", formData.pickupInstructions);
+      form.append("category", formData.category);
+      if (formData.quantityServings) {
+        form.append("quantityServings", formData.quantityServings);
+      }
+      form.append("allergens", formData.allergens);
+      form.append("packaging", formData.packaging);
+      form.append("pickupWindowStart", formData.pickupWindowStart);
+      form.append("pickupWindowEnd", formData.pickupWindowEnd);
+      if (locationCoords) {
+        form.append("locationLat", String(locationCoords.lat));
+        form.append("locationLng", String(locationCoords.lng));
+      }
       
       // Collect existing images to keep (those without a file property)
       const existingImagesToKeep = imagePreviews
@@ -201,65 +230,7 @@ export default function EditDonation() {
       </div>
 
       {/* Sidebar */}
-      <div
-        className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
-      `}
-      >
-        <div className="flex flex-col h-full">
-          <div className="p-6 border-b">
-            <h2 className="text-2xl font-bold text-green-600">FWRP</h2>
-          </div>
-
-          <div className="flex-1 py-6 px-4 space-y-6">
-            <div className="flex flex-col items-center space-y-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={profileData.avatar || "/placeholder.svg?height=80&width=80"} alt="Profile" />
-                <AvatarFallback>
-                  <User className="h-10 w-10" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-center">
-                <h3 className="font-medium">{profileData.fullName}</h3>
-                <p className="text-sm text-gray-500">{profileData.email}</p>
-              </div>
-            </div>
-
-            <nav className="mt-8 space-y-2">
-              <Link href="/edit-profile" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Settings className="h-5 w-5 mr-3" />
-                Show Profile
-              </Link>
-              <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Home className="h-5 w-5 mr-3" />
-                Dashboard
-              </Link>
-              <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-md hover:bg-gray-100">
-                <Gift className="h-5 w-5 mr-3" />
-                Donate Food
-              </Link>
-            </nav>
-          </div>
-
-          <div className="p-4 border-t">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={async () => {
-                try {
-                  await logout();
-                } catch {
-                  alert("Failed to sign out. Please try again.");
-                }
-              }}
-            >
-              <LogOut className="h-5 w-5 mr-3" />
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </div>
+      <Sidebar activePath="/donate-food" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main content */}
       <div className="flex-1 lg:ml-64">
@@ -319,6 +290,57 @@ export default function EditDonation() {
               </div>
 
               <div>
+                <Label htmlFor="category">Category</Label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                  className="mt-1 w-full rounded-md border border-emerald-100 px-3 py-2 text-sm"
+                >
+                  <option value="produce">Produce</option>
+                  <option value="cooked">Cooked</option>
+                  <option value="bakery">Bakery</option>
+                  <option value="pantry">Pantry</option>
+                  <option value="dairy">Dairy</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <Label htmlFor="quantityServings">Servings (approx.)</Label>
+                <Input
+                  id="quantityServings"
+                  name="quantityServings"
+                  type="number"
+                  min={1}
+                  max={1000}
+                  value={formData.quantityServings}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="allergens">Allergens (comma-separated)</Label>
+                <Input
+                  id="allergens"
+                  name="allergens"
+                  value={formData.allergens}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="packaging">Packaging</Label>
+                <Input
+                  id="packaging"
+                  name="packaging"
+                  value={formData.packaging}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="expiryDate">Expiry Date</Label>
                 <Input
                   id="expiryDate"
@@ -329,6 +351,29 @@ export default function EditDonation() {
                   min={new Date().toISOString().split('T')[0]}
                   required
                 />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="pickupWindowStart">Pickup Window Start</Label>
+                  <Input
+                    id="pickupWindowStart"
+                    name="pickupWindowStart"
+                    type="time"
+                    value={formData.pickupWindowStart}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="pickupWindowEnd">Pickup Window End</Label>
+                  <Input
+                    id="pickupWindowEnd"
+                    name="pickupWindowEnd"
+                    type="time"
+                    value={formData.pickupWindowEnd}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
 
               <div>

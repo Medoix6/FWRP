@@ -4,3 +4,4 @@ node_modules
 serviceAccountKey.json
 *firebase-adminsdk-*.json
 .next/
+firebase.rules

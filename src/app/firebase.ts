@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 import type { FirebaseOptions } from "firebase/app";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -28,7 +28,8 @@ const requiredConfig: Array<keyof FirebaseOptions> = [
 
 const missingConfig = requiredConfig.filter((key) => !firebaseConfig[key]);
 
-export const firebaseInitError = missingConfig.length > 0
+
+const firebaseInitError = missingConfig.length > 0
   ? `Missing required Firebase configuration: ${missingConfig.join(", ")}. Set NEXT_PUBLIC_FIREBASE_* variables in your environment.`
   : null;
 
@@ -36,10 +37,22 @@ if (isBrowser && firebaseInitError) {
   console.warn(firebaseInitError);
 }
 
-// Initialize Firebase only in the browser so server prerendering can still succeed.
+
 const app = isBrowser && !missingConfig.length
   ? (getApps().length ? getApp() : initializeApp(firebaseConfig))
   : null;
 
 export const auth = app ? getAuth(app) : (undefined as unknown as ReturnType<typeof getAuth>);
 export const db = app ? getFirestore(app) : (undefined as unknown as ReturnType<typeof getFirestore>);
+
+if (isBrowser && db) {
+  enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === "failed-precondition") {
+      console.warn("Firestore persistence failed: multiple tabs open.");
+    } else if (err.code === "unimplemented") {
+      console.warn("Firestore persistence not supported in this browser.");
+    }
+  });
+}
+
+export { firebaseInitError };

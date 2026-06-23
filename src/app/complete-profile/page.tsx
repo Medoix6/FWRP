@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import { auth, db } from "@/app/firebase"
 import { doc, setDoc } from "firebase/firestore"
 import { MapPin, Loader2 } from "lucide-react"
+import toast from "react-hot-toast"
 
 export default function CompleteProfile() {
   const router = useRouter()
@@ -50,7 +51,7 @@ export default function CompleteProfile() {
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
       return;
     }
 
@@ -76,14 +77,14 @@ export default function CompleteProfile() {
           }
         } catch (error) {
           console.error("Error fetching address:", error);
-          alert("Failed to get location address");
+          toast.error("Failed to get location address");
         } finally {
           setIsLocating(false);
         }
       },
       (error) => {
         console.error("Geolocation error:", error);
-        alert("Unable to retrieve your location");
+        toast.error("Unable to retrieve your location");
         setIsLocating(false);
       }
     );
@@ -94,11 +95,10 @@ export default function CompleteProfile() {
     try {
       const user = auth.currentUser
       if (!user) {
-        alert("No authenticated user found. Please log in again.")
+        toast.error("No authenticated user found. Please log in again.")
         return
       }
 
-      const isAdmin = localStorage.getItem("signup_isAdmin") === "true";
       await setDoc(doc(db, "users", user.uid), {
         name: formData.name,
         phone: formData.phone,
@@ -110,14 +110,20 @@ export default function CompleteProfile() {
         additionalInfo: formData.additionalInfo,
         email: user.email,
         uid: user.uid,
-        ...(isAdmin ? { isAdmin: true } : {}),
+        isAdmin: false,
+        isVerified: false,
+        ratingAverage: 0,
+        ratingCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       })
 
       localStorage.removeItem("signup_isAdmin")
+      toast.success("Profile completed successfully!")
       router.push("/login")
     } catch (error) {
       console.error("Error saving profile:", error)
-      alert("Failed to save profile. Please try again.")
+      toast.error("Failed to save profile. Please try again.")
     }
   }
 

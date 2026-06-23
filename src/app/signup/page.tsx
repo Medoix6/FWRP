@@ -1,75 +1,64 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
+import type React from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { ArrowLeft, KeyRound, Mail, Sparkles, ShieldCheck, HeartHandshake } from "lucide-react";
 import { auth, firebaseInitError } from "@/app/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { AuthTokenManager } from "@/lib/clientAuth";
+import toast from "react-hot-toast";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const passwordValidation = (password: string) => {
-    return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password);
+  const passwordValidation = (pwd: string) => {
+    // At least 6 characters, 1 uppercase letter, 1 number
+    return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(pwd);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = event.currentTarget as HTMLFormElement;
-    const emailElement = form.elements.namedItem("email") as HTMLInputElement | null;
-    const passwordElement = form.elements.namedItem("password") as HTMLInputElement | null;
-    const passwordConfirmElement = form.elements.namedItem("password-confirm") as HTMLInputElement | null;
-
-    if (!emailElement || !passwordElement || !passwordConfirmElement) {
-      setError("Form elements not found");
-      return;
-    }
-
-    const email = emailElement.value;
-    const password = passwordElement.value;
-    const passwordConfirm = passwordConfirmElement.value;
 
     if (password !== passwordConfirm) {
-      setError("Both passwords don't match");
+      toast.error("Both passwords don't match");
       return;
     }
     if (!passwordValidation(password)) {
-      setError("Password must be at least 6 characters, include 1 capital letter and 1 number.");
+      toast.error("Password must be at least 6 characters, include 1 capital letter and 1 number.");
       return;
     }
-    setError("");
 
+    // Check if auth is initialized
+    if (firebaseInitError) {
+      toast.error(firebaseInitError);
+      return;
+    }
+    if (!auth) {
+      toast.error("Firebase Auth is not initialized.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      // Check if auth is initialized
-      if (firebaseInitError) {
-        throw new Error(firebaseInitError);
-      }
-      if (!auth) {
-        throw new Error("Firebase Auth is not initialized.");
-      }
-
-      console.log("Starting signup with email:", email);
       const credential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log("Firebase signup successful, user UID:", credential.user.uid);
-      
       const token = await credential.user.getIdToken();
-      console.log("ID token obtained successfully");
       
       if (token) {
         AuthTokenManager.setToken(token);
         
         // Create session on server
         try {
-          console.log("Creating server session...");
           const sessionResponse = await fetch("/api/auth/session", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -78,144 +67,194 @@ export default function SignupPage() {
           
           if (!sessionResponse.ok) {
             console.warn("Session creation returned non-OK status:", sessionResponse.status);
-            // Don't throw - session creation failure shouldn't block signup
-          } else {
-            console.log("Server session created successfully");
           }
         } catch (sessionError) {
           console.warn("Failed to create server session:", sessionError);
-          // Continue anyway - user is still authenticated via token
         }
       }
       
-      setSuccessMsg("Signup successful! Redirecting...");
-      setTimeout(() => {
-        setSuccessMsg(null);
-        router.push("/complete-profile");
-      }, 1800);
-    } catch (error) {
+      toast.success("Signup successful! Let's complete your profile.");
+      router.push("/complete-profile");
+    } catch (error: any) {
       console.error("Error signing up:", error);
-      console.error("Error details:", {
-        errorType: typeof error,
-        errorKeys: error instanceof Error ? Object.keys(error) : [],
-        errorString: String(error),
-      });
       
-      // Type guard for FirebaseError
-      if (typeof error === "object" && error !== null && "code" in error) {
-        const firebaseError = error as { code?: string; message?: string };
-        const errorCode = firebaseError.code;
-        
-        switch (errorCode) {
-          case "auth/email-already-in-use":
-            setError("This email is already registered. Please login instead.");
-            break;
-          case "auth/invalid-email":
-            setError("Invalid email address. Please check and try again.");
-            break;
-          case "auth/weak-password":
-            setError("Password is too weak. Please use a stronger password.");
-            break;
-          case "auth/operation-not-allowed":
-            setError("Signup is currently disabled. Please try again later.");
-            break;
-          case "auth/too-many-requests":
-            setError("Too many attempts. Please try again later.");
-            break;
-          case "auth/network-request-failed":
-            setError("Network error. Please check your connection and try again.");
-            break;
-          default:
-            setError(`Signup failed: ${firebaseError.message || "Please try again."}`);
-        }
-      } else if (error instanceof Error) {
-        // Handle Error objects
-        setError(error.message || "An unexpected error occurred during signup. Please try again.");
-      } else {
-        setError("An unexpected error occurred during signup. Please try again.");
+      // Map FirebaseError code to message
+      const errorCode = error?.code;
+      switch (errorCode) {
+        case "auth/email-already-in-use":
+          toast.error("This email is already registered. Please login instead.");
+          break;
+        case "auth/invalid-email":
+          toast.error("Invalid email address. Please check and try again.");
+          break;
+        case "auth/weak-password":
+          toast.error("Password is too weak. Please use a stronger password.");
+          break;
+        case "auth/operation-not-allowed":
+          toast.error("Signup is currently disabled. Please try again later.");
+          break;
+        case "auth/too-many-requests":
+          toast.error("Too many attempts. Please try again later.");
+          break;
+        case "auth/network-request-failed":
+          toast.error("Network error. Please check your connection and try again.");
+          break;
+        default:
+          toast.error(error.message || "An unexpected error occurred during signup.");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-green-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      {successMsg && (
-        <div
-          className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded shadow-lg text-lg font-semibold animate-fade-in"
-          role="status"
-          aria-live="polite"
-        >
-          {successMsg}
+    <div className="min-h-screen bg-white flex">
+      {/* Left Panel: Brand panel (Split layout) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-800 to-emerald-950 p-12 flex-col justify-between text-white relative overflow-hidden">
+        {/* Decorative ambient blobs */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-lime-500/10 rounded-full blur-3xl" />
+        
+        <div className="flex items-center gap-2 z-10">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-emerald-800 font-bold text-xl shadow-md">
+            F
+          </span>
+          <span className="text-2xl font-bold tracking-tight">FWRP</span>
         </div>
-      )}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
+
+        <div className="space-y-6 z-10 max-w-lg">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-700/40 text-emerald-300 text-xs font-semibold uppercase tracking-wider">
+            <Sparkles className="h-3.5 w-3.5" />
+            Together against food waste
+          </div>
+          <h1 className="text-5xl font-extrabold tracking-tight leading-[1.1] font-display">
+            Start Rescuing Food Today
+          </h1>
+          <p className="text-lg text-emerald-100/90 leading-relaxed font-body">
+            Create an account on the Food Waste Reduction Platform. List food donations or claim meals to help reduction and sustainability.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6 pt-6 border-t border-emerald-800/60 z-10">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="h-6 w-6 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-white">Safe & Secure</h4>
+              <p className="text-sm text-emerald-200/70 mt-0.5">Role based access control and verified profiles.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <HeartHandshake className="h-6 w-6 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-white">Direct Impact</h4>
+              <p className="text-sm text-emerald-200/70 mt-0.5">Track your rescued meals and carbon footprint reduction.</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {/* Back Button - top left, inside the form card */}
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => router.push("/")}
-            className="absolute top-4 left-4 flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
-          </Button>
-          <form className="space-y-6 mt-8" onSubmit={handleSubmit}>
-            <div>
-              <Label htmlFor="email">Email address</Label>
-              <div className="mt-1">
-                <Input id="email" name="email" type="email" autoComplete="email" required />
-              </div>
+      {/* Right Panel: Signup Form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center py-12 px-6 sm:px-12 lg:px-20 bg-emerald-50/20 relative">
+        <Button
+          variant="ghost"
+          onClick={() => router.push("/")}
+          className="absolute top-6 left-6 text-gray-600 hover:text-emerald-700 flex items-center gap-2 hover:bg-emerald-50/50 rounded-xl"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Home</span>
+        </Button>
+
+        <div className="mx-auto w-full max-w-md">
+          <div className="bg-white py-10 px-8 sm:px-10 shadow-lg border border-emerald-100 rounded-2xl">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900">Create Account</h2>
+              <p className="mt-2 text-sm text-gray-500">Get started by filling out the details below</p>
             </div>
 
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <div className="mt-1">
-                <Input id="password" name="password" type="password" autoComplete="new-password" required />
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div className="space-y-1">
+                <Label htmlFor="email">Email address</Label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                    <Mail className="h-5 w-5" />
+                  </span>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl py-5"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <Label htmlFor="password-confirm">Confirm Password</Label>
-              <div className="mt-1">
-                <Input
-                  id="password-confirm"
-                  name="password-confirm"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                />
+              <div className="space-y-1">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                    <KeyRound className="h-5 w-5" />
+                  </span>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl py-5"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Must be at least 6 characters, include 1 uppercase letter and 1 number.
+                </p>
               </div>
-            </div>
 
-            {error && (
-              <div className="text-red-600 text-sm" role="alert" aria-live="assertive">
-                {error}
+              <div className="space-y-1">
+                <Label htmlFor="password-confirm">Confirm Password</Label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                    <KeyRound className="h-5 w-5" />
+                  </span>
+                  <Input
+                    id="password-confirm"
+                    name="password-confirm"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl py-5"
+                  />
+                </div>
               </div>
-            )}
-            <div>
-              <Button type="submit" className="w-full">
-                Sign up
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-5 rounded-xl transition-all shadow-md hover:shadow-lg flex justify-center items-center gap-2"
+              >
+                {isSubmitting ? "Creating account..." : "Sign up"}
               </Button>
+            </form>
+
+            <div className="mt-8 text-center border-t border-gray-100 pt-6">
+              <p className="text-sm text-gray-600">
+                Already have an account?{" "}
+                <Link href="/login" className="font-semibold text-emerald-600 hover:text-emerald-700">
+                  Login
+                </Link>
+              </p>
             </div>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <Link href="/login" className="font-medium text-green-600 hover:text-green-500">
-                Login
-              </Link>
-            </p>
           </div>
-
         </div>
       </div>
     </div>
   );
 }
-

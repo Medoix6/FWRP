@@ -1,40 +1,63 @@
-"use client"
+"use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-import type React from "react"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Home,
+  Gift,
+  User,
+  LogOut,
+  Menu,
+  ArrowLeft,
+  Settings,
+  Shield,
+  MessageCircle,
+  KeyRound,
+  ShieldAlert,
+  Loader2,
+  Trash2,
+  CheckCircle2,
+  Star
+} from "lucide-react";
+import { auth, db } from "@/app/firebase";
+import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "firebase/auth";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { usersService } from "@/services/usersService";
+import { logout } from "@/lib/logout";
+import { useAuth } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import toast from "react-hot-toast";
+import Sidebar from "@/components/Sidebar";
+import { LoadingSpinner } from "@/components/Loading";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Home, Gift, User, LogOut, Menu, ArrowLeft, Settings, Shield, MessageCircle } from "lucide-react"
-import Link from "next/link"
-import { useEffect } from "react"
-import { auth } from "@/app/firebase"
-import { onAuthStateChanged } from "firebase/auth"
-import { collection, query, where, onSnapshot } from "firebase/firestore"
-import { db } from "@/app/firebase"
-import { getUserProfileData, updateUserProfile } from "@/features/user/controller"
-import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
-import { deleteUser } from "firebase/auth"
-import { LoadingSpinner } from "@/components/Loading"
-import { logout } from "@/lib/logout"
+type TabType = "info" | "security";
 
 export default function EditProfile() {
-  const router = useRouter()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [user, setUser] = useState<{ displayName: string | null, email: string | null }>({ displayName: null, email: null })
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
-  const [cloudinaryWidgetOpen, setCloudinaryWidgetOpen] = useState(false)
-  const [cloudinaryReady] = useState(true)
-  const [isAvatarUploading, setIsAvatarUploading] = useState(false)
-  const [avatarSuccess, setAvatarSuccess] = useState<string | null>(null)
-  const [isProfileLoading, setIsProfileLoading] = useState(true)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const [mounted, setMounted] = useState(false);
+  const isAdminView = mounted && searchParams?.get("admin") === "1";
+  
+  const [activeTab, setActiveTab] = useState<TabType>("info");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [ratingInfo, setRatingInfo] = useState<{ average: number; count: number }>({ average: 0, count: 0 });
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  
   const [profileData, setProfileData] = useState({
     fullName: "",
     email: "",
@@ -45,48 +68,51 @@ export default function EditProfile() {
     postalCode: "",
     bio: "",
     avatar: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [unreadCount, setUnreadCount] = useState(0)
+  });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Assume Cloudinary widget is ready (forcibly enable button)
-  // If you want to keep the robust check, comment out the next line and restore the useEffect above
-  // useEffect(() => { ... });
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false);
+  
+  // Account delete confirmation modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fetch user profile on auth change
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setIsProfileLoading(true);
-        setUser({
-          displayName: firebaseUser.displayName || "No Username",
-          email: firebaseUser.email || "No Email"
-        });
         try {
-          const data = await getUserProfileData(firebaseUser.uid) as Record<string, unknown> | null;
+          const data = await usersService.fetchUserProfile(firebaseUser.uid);
           if (data) {
             setProfileData({
-              fullName: (data.name as string) || (data.fullName as string) || firebaseUser.displayName || "",
-              email: (data.email as string) || firebaseUser.email || "",
-              phone: (data.phone as string) || "",
-              address: (data.address as string) || "",
-              city: (data.city as string) || "",
-              state: (data.state as string) || "",
-              postalCode: (data.postalCode as string) || "",
-              bio: (data.bio as string) || "",
-              avatar: (data.avatar as string) || "",
+              fullName: data.name || data.fullName || firebaseUser.displayName || "",
+              email: data.email || firebaseUser.email || "",
+              phone: data.phone || "",
+              address: data.address || "",
+              city: data.city || "",
+              state: data.state || "",
+              postalCode: data.postalCode || "",
+              bio: data.bio || "",
+              avatar: data.avatar || "",
             });
             setIsAdmin(Boolean(data.isAdmin));
-          } else {
-            setProfileData((prev) => ({
-              ...prev,
-              fullName: firebaseUser.displayName || "",
-              email: firebaseUser.email || "",
-            }));
-            setIsAdmin(false);
+            setIsVerified(Boolean(data.isVerified));
+            setRatingInfo({
+              average: Number(data.ratingAverage || 0),
+              count: Number(data.ratingCount || 0),
+            });
           }
-        } catch {
-          setErrorMsg("Could not load profile details. Please refresh and try again.");
+        } catch (err: any) {
+          toast.error("Could not fetch user profile details.");
           setIsAdmin(false);
         } finally {
           setIsProfileLoading(false);
@@ -94,42 +120,23 @@ export default function EditProfile() {
       } else {
         setIsAdmin(false);
         setIsProfileLoading(false);
-        window.location.href = "/login";
+        router.push("/login");
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
-  // Listen for unread messages
-  useEffect(() => {
-    if (!user.email) return;
 
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-
-    const messagesRef = collection(db, "messages");
-    const unreadQuery = query(
-      messagesRef,
-      where("receiverId", "==", currentUser.uid),
-      where("status", "in", ["sent", "delivered"])
-    );
-
-    const unsubscribe = onSnapshot(unreadQuery, (snapshot) => {
-      setUnreadCount(snapshot.size);
-    });
-
-    return () => unsubscribe();
-  }, [user.email]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setProfileData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
-  // Cloudinary Upload Widget handler
+  // Cloudinary Avatar Upload Widget
   const handleCloudinaryUpload = () => {
     type CloudinaryWidget = {
       open: () => void;
@@ -142,72 +149,66 @@ export default function EditProfile() {
         ) => CloudinaryWidget;
       };
     };
+
     if (typeof window !== "undefined" && (window as CloudinaryWindow).cloudinary) {
       setIsAvatarUploading(true);
-      setAvatarSuccess(null);
-      setErrorMsg(null);
       const myWidget = (window as CloudinaryWindow).cloudinary!.createUploadWidget(
         {
-          cloudName: 'drig5ndvt',
-          uploadPreset: 'avatar_upload',
+          cloudName: "drig5ndvt",
+          uploadPreset: "avatar_upload",
           cropping: true,
           multiple: false,
-          folder: 'avatars',
+          folder: "avatars",
         },
-        async (error: unknown, result: unknown) => {
-          if (!error && result && typeof result === 'object' && result !== null && (result as { event?: string }).event === "success") {
-            const info = (result as { info?: { secure_url?: string } }).info;
-            const url = (info?.secure_url ?? "") + '?t=' + Date.now();
+        async (error: unknown, result: any) => {
+          if (!error && result && result.event === "success") {
+            const url = (result.info?.secure_url ?? "") + "?t=" + Date.now();
             setProfileData((prev) => ({ ...prev, avatar: url }));
             try {
-              const currentUser = auth.currentUser;
+              const currentUser = auth?.currentUser;
               if (!currentUser) throw new Error("No authenticated user");
-              await updateUserProfile(currentUser.uid, { avatar: url });
-              setErrorMsg(null);
-              setAvatarSuccess("Avatar updated successfully!");
+              await usersService.updateUserProfile(currentUser.uid, { avatar: url });
+              toast.success("Avatar image updated!");
             } catch {
-              setErrorMsg("Failed to update avatar in database.");
+              toast.error("Failed to update avatar in database.");
             }
           } else if (error) {
-            setErrorMsg("Cloudinary upload failed. Please try again.");
+            toast.error("Upload widget error.");
           }
-          setCloudinaryWidgetOpen(false);
           setIsAvatarUploading(false);
         }
       );
       myWidget.open();
-      setCloudinaryWidgetOpen(true);
     } else {
-      setErrorMsg("Cloudinary widget failed to load. Please try again later.");
+      toast.error("Cloudinary widget failed to load. Please try again later.");
     }
   };
 
   const handleResetAvatar = async () => {
-    setProfileData((prev) => ({ ...prev, avatar: "" }));
     try {
-      const currentUser = auth.currentUser;
+      const currentUser = auth?.currentUser;
       if (!currentUser) throw new Error("No authenticated user");
-      await updateUserProfile(currentUser.uid, { avatar: "" });
-      setErrorMsg(null);
+      await usersService.updateUserProfile(currentUser.uid, { avatar: "" });
+      setProfileData((prev) => ({ ...prev, avatar: "" }));
+      toast.success("Avatar image reset.");
     } catch {
-      setErrorMsg("Failed to reset avatar in database.");
+      toast.error("Failed to reset avatar in database.");
     }
   };
 
-  const handleEditOrSubmit = async (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!isEditMode) {
-      e.preventDefault();
       setIsEditMode(true);
       return;
     }
-    e.preventDefault();
+
     setIsSubmitting(true);
-    setErrorMsg(null);
     try {
-      const currentUser = auth.currentUser;
+      const currentUser = auth?.currentUser;
       if (!currentUser) throw new Error("No authenticated user");
-      const avatarUrl = profileData.avatar;
-      await updateUserProfile(currentUser.uid, {
+
+      await usersService.updateUserProfile(currentUser.uid, {
         name: profileData.fullName,
         email: profileData.email,
         phone: profileData.phone,
@@ -216,381 +217,464 @@ export default function EditProfile() {
         state: profileData.state,
         postalCode: profileData.postalCode,
         bio: profileData.bio,
-        avatar: avatarUrl,
       });
-      setProfileData((prev) => ({ ...prev, avatar: avatarUrl }));
+
+      toast.success("Profile saved successfully!");
       setIsEditMode(false);
-      // Redirect based on admin status
+      
       if (isAdmin) {
         router.push("/admin");
       } else {
         router.push("/dashboard");
       }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      setErrorMsg((error as Error)?.message || "Failed to update profile. Please try again.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update profile.");
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  const [showPasswordFields, setShowPasswordFields] = useState(false)
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [passwordError, setPasswordError] = useState<string | null>(null)
-  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null)
-  const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false)
-
-  const passwordValidation = (password: string) => {
-    return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password);
   };
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
+  const handlePasswordChangeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordError(null);
-    setPasswordSuccess(null);
     setIsPasswordSubmitting(true);
+
+    const passwordValidation = (pwd: string) => {
+      return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(pwd);
+    };
+
     if (!passwordValidation(newPassword)) {
-      setPasswordError("Password must be at least 6 characters, include 1 capital letter and 1 number.");
+      toast.error("Password must be at least 6 chars with 1 capital and 1 number.");
       setIsPasswordSubmitting(false);
       return;
     }
+
     try {
-      const currentUser = auth.currentUser;
+      const currentUser = auth?.currentUser;
       if (!currentUser || !currentUser.email) throw new Error("No authenticated user");
-      // Re-authenticate
+      
       const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
       await reauthenticateWithCredential(currentUser, credential);
       await updatePassword(currentUser, newPassword);
-      setPasswordSuccess("Password updated successfully.");
-      setShowPasswordFields(false);
+      
+      toast.success("Password updated successfully.");
       setCurrentPassword("");
       setNewPassword("");
-    } catch (error) {
-      if (
-        typeof error === 'object' && error !== null &&
-        ('code' in error || 'message' in error)
-      ) {
-        const code = (error as { code?: string }).code;
-        const message = (error as { message?: string }).message;
-        if (code === "auth/invalid-credential" || (typeof message === 'string' && message.includes("auth/invalid-credential"))) {
-          setPasswordError("The current password you entered is incorrect.");
-        } else {
-          setPasswordError(message || "Failed to update password.");
-        }
+    } catch (error: any) {
+      if (error.code === "auth/invalid-credential") {
+        toast.error("The current password you entered is incorrect.");
       } else {
-        setPasswordError("Failed to update password.");
+        toast.error(error.message || "Failed to update password.");
       }
     } finally {
       setIsPasswordSubmitting(false);
     }
-  }
+  };
+
+  const handleDeleteAccountSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (deleteConfirmText !== "DELETE") {
+      toast.error("Please type DELETE to confirm account deletion.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const currentUser = auth?.currentUser;
+      if (!currentUser) throw new Error("No authenticated user");
+      
+      await deleteUser(currentUser);
+      toast.success("Account deleted. Farewell!");
+      router.push("/signup");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete account. Re-login and try again.");
+    } finally {
+      setIsSubmitting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const activePath: string = "/edit-profile";
 
   if (isProfileLoading) {
     return <LoadingSpinner size="lg" />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-lime-50 to-white flex">
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="bg-white border-emerald-200 hover:bg-emerald-50">
-          <Menu className="h-5 w-5" />
-        </Button>
-      </div>
-
-      <div
-        className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-100 transform transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
-      `}
-      >
-        <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-lime-50">
-            <h2 className="text-2xl font-bold text-emerald-600">FWRP</h2>
-          </div>
-
-          <div className="flex-1 py-6 px-4 space-y-6">
-            <div className="flex flex-col items-center mb-8">
-              <Avatar className="w-24 h-24 mb-2">
-                <AvatarImage src={profileData.avatar || "/placeholder.svg?height=80&width=80"} alt="Profile" />
-                <AvatarFallback>
-                  <User className="h-10 w-10" />
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-lg font-semibold">
-                {profileData.fullName || user.displayName}
-              </span>
-            </div>
-
-            <nav className="mt-8 space-y-2">
-              {isAdmin === null ? null : (
-                <>
-                  <Link href="/edit-profile" className="flex items-center p-3 bg-emerald-100 text-emerald-700 rounded-xl font-medium">
-                    <Settings className="h-5 w-5 mr-3" />
-                    Show Profile
-                  </Link>
-                  {isAdmin ? (
-                    <Link href="/admin" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                      <Shield className="h-5 w-5 mr-3" />
-                      Admin Dashboard
-                    </Link>
-                  ) : (
-                    <>
-                      <Link href="/dashboard" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                        <Home className="h-5 w-5 mr-3" />
-                        Dashboard
-                      </Link>
-                      <Link href="/donate-food" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                        <Gift className="h-5 w-5 mr-3" />
-                        Donate Food
-                      </Link>
-                      <Link href="/chat" className="flex items-center p-3 text-gray-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                        <MessageCircle className="h-5 w-5 mr-3" />
-                        <span className="flex-1">Chat</span>
-                        {unreadCount > 0 && (
-                          <span className="ml-auto bg-red-500 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
-                            {unreadCount > 9 ? '9+' : unreadCount}
-                          </span>
-                        )}
-                      </Link>
-                    </>
-                  )}
-                </>
-              )}
-            </nav>
-          </div>
-
-          <div className="p-4 border-t border-emerald-100">
-            <Button
-              variant="outline"
-              className="w-full justify-start border-emerald-200 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
-              onClick={async () => {
-                try {
-                  await logout();
-                } catch {
-                  setErrorMsg("Failed to sign out. Please try again.");
-                }
-              }}
-            >
-              <LogOut className="h-5 w-5 mr-3" />
-              Sign out
-            </Button>
-          </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-slate-50/50 flex">
+        {/* Mobile sidebar toggle */}
+        <div className="lg:hidden fixed top-4 left-4 z-50">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="bg-white border-slate-200 hover:bg-slate-50 rounded-xl"
+          >
+            <Menu className="h-5 w-5 text-gray-700" />
+          </Button>
         </div>
-      </div>
-      {/* Main content */}
-      <div className="flex-1 lg:ml-64">
-        <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-emerald-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
-            <Link href="/dashboard" className="mr-4">
-              <Button variant="ghost" size="sm" className="hover:bg-emerald-50 hover:text-emerald-700">
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Back to Dashboard
+
+        {/* Sidebar Nav */}
+        <Sidebar activePath="/edit-profile" sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} adminContext={isAdminView} />
+
+        {/* Main Area */}
+        <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+          <header className="bg-white border-b border-slate-100 py-6 px-6 sm:px-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 font-display">Profile Settings</h1>
+              <p className="text-sm text-gray-500 mt-1 font-body">Manage your profile info, security settings, and credentials</p>
+            </div>
+            <Link href={isAdminView ? "/admin" : "/dashboard"}>
+              <Button variant="ghost" className="text-gray-600 hover:text-emerald-700 flex items-center gap-2 hover:bg-emerald-50/50 rounded-xl">
+                <ArrowLeft className="h-4 w-4" />
+                Back to {isAdminView ? "Admin Dashboard" : "Dashboard"}
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Show Profile</h1>
-          </div>
-        </header>
-        <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="bg-white/90 shadow-lg rounded-3xl border border-emerald-100 p-8">
-            <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
+          </header>
 
-            <form onSubmit={handleEditOrSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="avatar">Profile Picture</Label>
-                <div className="mt-1 flex items-center space-x-5">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={profileData.avatar || "/placeholder.svg?height=80&width=80"} alt="Profile" />
-                    <AvatarFallback>
-                      <User className="h-10 w-10" />
-                    </AvatarFallback>
-                  </Avatar>
-                  {isEditMode && (
-                    <>
+          <main className="flex-1 max-w-4xl mx-auto w-full py-8 px-6 sm:px-8 space-y-6">
+            {/* Account Badges Row */}
+            <div className="flex flex-wrap items-center gap-3">
+              {isVerified && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100">
+                  <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                  Verified Account
+                </span>
+              )}
+              {ratingInfo.count > 0 && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-100">
+                  <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 mr-1" />
+                  Rating {ratingInfo.average.toFixed(1)} ({ratingInfo.count} reviews)
+                </span>
+              )}
+            </div>
+
+            {/* Premium Tabbed Navigation */}
+            <div className="flex border-b border-slate-200">
+              <button
+                className={`py-3 px-6 text-sm font-bold border-b-2 transition-all ${
+                  activeTab === "info"
+                    ? "border-emerald-600 text-emerald-700"
+                    : "border-transparent text-gray-500 hover:text-gray-900"
+                }`}
+                onClick={() => setActiveTab("info")}
+              >
+                Profile Information
+              </button>
+              <button
+                className={`py-3 px-6 text-sm font-bold border-b-2 transition-all ${
+                  activeTab === "security"
+                    ? "border-emerald-600 text-emerald-700"
+                    : "border-transparent text-gray-500 hover:text-gray-900"
+                }`}
+                onClick={() => setActiveTab("security")}
+              >
+                Security & Danger Zone
+              </button>
+            </div>
+
+            {/* Tab: Profile Info */}
+            {activeTab === "info" && (
+              <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6 sm:p-8 space-y-6">
+                <form onSubmit={handleProfileSubmit} className="space-y-6">
+                  {/* Avatar Upload Container */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-gray-500 uppercase">Profile Picture</Label>
+                    <div className="flex items-center gap-5">
+                      <Avatar className="h-20 w-20 border border-slate-100 shadow-sm">
+                        <AvatarImage src={profileData.avatar} alt="Profile" />
+                        <AvatarFallback className="bg-emerald-50 text-emerald-800 text-lg font-bold">
+                          {profileData.fullName ? profileData.fullName[0].toUpperCase() : "?"}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      {isEditMode && (
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            onClick={handleCloudinaryUpload}
+                            disabled={isAvatarUploading}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
+                          >
+                            {isAvatarUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upload Image"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={handleResetAvatar}
+                            className="text-gray-600 hover:bg-slate-50 border border-slate-200 rounded-xl"
+                          >
+                            Reset
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="space-y-1">
+                      <Label htmlFor="fullName" className="text-xs font-semibold text-gray-500 uppercase">Full Name</Label>
+                      <Input
+                        id="fullName"
+                        name="fullName"
+                        value={profileData.fullName}
+                        onChange={handleChange}
+                        required
+                        readOnly={!isEditMode}
+                        className="rounded-xl border-slate-200"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="email" className="text-xs font-semibold text-gray-500 uppercase">Email Address</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={profileData.email}
+                        readOnly
+                        className="rounded-xl border-slate-200 bg-slate-50 text-gray-400"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="phone" className="text-xs font-semibold text-gray-500 uppercase">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        value={profileData.phone}
+                        onChange={handleChange}
+                        required
+                        readOnly={!isEditMode}
+                        className="rounded-xl border-slate-200"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="address" className="text-xs font-semibold text-gray-500 uppercase">Address</Label>
+                      <Input
+                        id="address"
+                        name="address"
+                        value={profileData.address}
+                        onChange={handleChange}
+                        required
+                        readOnly={!isEditMode}
+                        className="rounded-xl border-slate-200"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="city" className="text-xs font-semibold text-gray-500 uppercase">City</Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        value={profileData.city}
+                        onChange={handleChange}
+                        required
+                        readOnly={!isEditMode}
+                        className="rounded-xl border-slate-200"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="state" className="text-xs font-semibold text-gray-500 uppercase">State/Province</Label>
+                      <Input
+                        id="state"
+                        name="state"
+                        value={profileData.state}
+                        onChange={handleChange}
+                        required
+                        readOnly={!isEditMode}
+                        className="rounded-xl border-slate-200"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="postalCode" className="text-xs font-semibold text-gray-500 uppercase">Postal Code</Label>
+                      <Input
+                        id="postalCode"
+                        name="postalCode"
+                        value={profileData.postalCode}
+                        onChange={handleChange}
+                        required
+                        readOnly={!isEditMode}
+                        className="rounded-xl border-slate-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="bio" className="text-xs font-semibold text-gray-500 uppercase">Short Bio</Label>
+                    <Textarea
+                      id="bio"
+                      name="bio"
+                      value={profileData.bio}
+                      onChange={handleChange}
+                      placeholder="Share details about your volunteer work, organization, or dietary needs..."
+                      rows={4}
+                      readOnly={!isEditMode}
+                      className="rounded-xl border-slate-200"
+                    />
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-50 flex gap-3">
+                    {isEditMode ? (
+                      <>
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-6"
+                        >
+                          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => setIsEditMode(false)}
+                          className="border border-slate-200 rounded-xl px-6 text-gray-600 hover:bg-slate-50"
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
                       <Button
                         type="button"
-                        onClick={handleCloudinaryUpload}
-                        className="ml-4 bg-emerald-600 hover:bg-emerald-700 text-white"
-                        disabled={!cloudinaryReady || isAvatarUploading}
-                        title={cloudinaryReady ? "Upload Avatar" : "Cloudinary widget is not ready yet"}
+                        onClick={() => setIsEditMode(true)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-8"
                       >
-                        {isAvatarUploading ? (
-                          <span className="flex items-center"><LoadingSpinner size="sm" /> <span className="ml-2">Uploading...</span></span>
-                        ) : "Upload Avatar"}
+                        Edit Profile
                       </Button>
-                      <Button type="button" onClick={handleResetAvatar} className="ml-2 bg-gray-200 text-gray-800" disabled={isAvatarUploading}>Reset Avatar</Button>
-                    </>
-                  )}
-                </div>
+                    )}
+                  </div>
+                </form>
               </div>
+            )}
 
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input id="fullName" name="fullName" value={profileData.fullName} onChange={handleChange} required readOnly={!isEditMode} />
-                </div>
+            {/* Tab: Security / Danger Zone */}
+            {activeTab === "security" && (
+              <div className="space-y-6">
+                {/* Password Change Box */}
+                <div className="bg-white border border-slate-100 shadow-sm rounded-3xl p-6 sm:p-8 space-y-5">
+                  <h2 className="text-lg font-bold text-gray-900 border-b border-slate-50 pb-3 flex items-center gap-2">
+                    <KeyRound className="h-5 w-5 text-emerald-600" />
+                    Change Password
+                  </h2>
 
-                <div>
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={profileData.email}
-                    onChange={handleChange}
-                    required
-                    readOnly={!isEditMode}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" name="phone" value={profileData.phone} onChange={handleChange} required readOnly={!isEditMode} />
-                </div>
-
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" name="address" value={profileData.address} onChange={handleChange} required readOnly={!isEditMode} />
-                </div>
-
-                <div>
-                  <Label htmlFor="city">City</Label>
-                  <Input id="city" name="city" value={profileData.city} onChange={handleChange} required readOnly={!isEditMode} />
-                </div>
-
-                <div>
-                  <Label htmlFor="state">State/Province</Label>
-                  <Input id="state" name="state" value={profileData.state} onChange={handleChange} required readOnly={!isEditMode} />
-                </div>
-
-                <div>
-                  <Label htmlFor="postalCode">Postal Code</Label>
-                  <Input
-                    id="postalCode"
-                    name="postalCode"
-                    value={profileData.postalCode}
-                    onChange={handleChange}
-                    required
-                    readOnly={!isEditMode}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  name="bio"
-                  value={profileData.bio}
-                  onChange={handleChange}
-                  placeholder="Tell us a bit about yourself"
-                  rows={4}
-                  readOnly={!isEditMode}
-                />
-              </div>
-
-              {errorMsg && (
-                <div className="mb-4 text-red-600 font-semibold">{errorMsg}</div>
-              )}
-              {avatarSuccess && (
-                <div className="mb-4 text-green-600 font-semibold">{avatarSuccess}</div>
-              )}
-
-              <div className="pt-4 flex flex-col gap-2">
-                <Button type="button" variant="outline" onClick={() => setShowPasswordFields((v) => !v)}>
-                  {showPasswordFields ? "Cancel Password Change" : "Change Password"}
-                </Button>
-                {showPasswordFields && (
-                  <div className="space-y-4 mt-2">
-                    <div>
-                      <Label htmlFor="currentPassword">Current Password</Label>
+                  <form onSubmit={handlePasswordChangeSubmit} className="space-y-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="currentPassword text-xs font-semibold text-gray-500 uppercase">Current Password</Label>
                       <Input
                         id="currentPassword"
                         name="currentPassword"
                         type="password"
-                        value={currentPassword}
-                        onChange={e => setCurrentPassword(e.target.value)}
                         required
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Enter current password"
+                        className="rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-5"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="newPassword">New Password</Label>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="newPassword text-xs font-semibold text-gray-500 uppercase">New Password</Label>
                       <Input
                         id="newPassword"
                         name="newPassword"
                         type="password"
-                        value={newPassword}
-                        onChange={e => setNewPassword(e.target.value)}
                         required
-                        minLength={6}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                        className="rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-5"
                       />
+                      <p className="text-[10px] text-gray-400 mt-1">Must be at least 6 characters with 1 capital and 1 digit.</p>
                     </div>
-                    {passwordError && <div className="text-red-600">{passwordError}</div>}
-                    {passwordSuccess && <div className="text-green-600">{passwordSuccess}</div>}
-                    <Button onClick={handlePasswordChange} disabled={isPasswordSubmitting} type="button">
-                      {isPasswordSubmitting ? <><LoadingSpinner size="sm" /> <span className="ml-2">Updating...</span></> : "Update Password"}
-                    </Button>
-                  </div>
-                )}
-              </div>
 
-              <div className="pt-4 flex justify-end space-x-4">
-                {isEditMode && (
-                  <Button type="button" variant="outline" onClick={() => setIsEditMode(false)} className="border-emerald-200 hover:bg-emerald-50">
+                    <Button
+                      type="submit"
+                      disabled={isPasswordSubmitting}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl mt-2"
+                    >
+                      {isPasswordSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                      Update Password
+                    </Button>
+                  </form>
+                </div>
+
+                {/* Danger Zone */}
+                <div className="bg-red-50/20 border border-red-100 shadow-sm rounded-3xl p-6 sm:p-8 space-y-5">
+                  <h2 className="text-lg font-bold text-red-700 border-b border-red-100/50 pb-3 flex items-center gap-2">
+                    <ShieldAlert className="h-5 w-5 text-red-600" />
+                    Danger Zone
+                  </h2>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Deleting your account is permanent. This will remove your user document profile, all listings associated with your account, and cannot be undone.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setShowDeleteModal(true)}
+                    className="bg-red-600 hover:bg-red-750 hover:bg-red-700 text-white rounded-xl flex items-center gap-2 py-5"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete Account Permanent
+                  </Button>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-red-50">
+              <h3 className="text-xl font-bold text-red-700 mb-2 flex items-center gap-2">
+                <ShieldAlert className="h-6 w-6 text-red-600" />
+                Confirm Account Deletion
+              </h3>
+              <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                This action is irreversible. To proceed, please type <span className="font-bold text-gray-800 uppercase">DELETE</span> below.
+              </p>
+              <form onSubmit={handleDeleteAccountSubmit} className="space-y-4">
+                <Input
+                  type="text"
+                  placeholder="Type DELETE to confirm"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  required
+                  className="rounded-xl border-red-200 focus:border-red-500 focus:ring-red-500 py-5"
+                />
+                <div className="flex gap-3 justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setDeleteConfirmText("");
+                    }}
+                    className="rounded-xl"
+                  >
                     Cancel
                   </Button>
-                )}
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                >
-                  {isSubmitting ? <><LoadingSpinner size="sm" /> <span className="ml-2">Saving...</span></> : isEditMode ? "Save Changes" : "Edit"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="ml-2 bg-red-600 text-white hover:bg-red-700"
-                  onClick={async () => {
-                    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
-                    setIsSubmitting(true);
-                    setErrorMsg(null);
-                    try {
-                      const currentUser = auth.currentUser;
-                      if (!currentUser) throw new Error("No authenticated user");
-                      await deleteUser(currentUser);
-                      router.push("/signup");
-                    } catch (error) {
-                      setErrorMsg((error as Error)?.message || "Failed to delete account. Please try again.");
-                    } finally {
-                      setIsSubmitting(false);
-                    }
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Delete Account
-                </Button>
-              </div>
-            </form>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || deleteConfirmText !== "DELETE"}
+                    className="bg-red-600 hover:bg-red-750 hover:bg-red-700 text-white rounded-xl"
+                  >
+                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete Permanently"}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
-        </main>
+        )}
+
+        {/* Sidebar Overlay */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/40 z-30 lg:hidden backdrop-blur-xs" onClick={() => setSidebarOpen(false)} />
+        )}
       </div>
-
-
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {cloudinaryWidgetOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md flex flex-col items-center">
-            <span className="mb-4 text-lg font-semibold">Uploading Avatar...</span>
-            <Button onClick={() => setCloudinaryWidgetOpen(false)} variant="outline">Cancel</Button>
-          </div>
-        </div>
-      )}
-
-
-    </div>
-  )
+    </ProtectedRoute>
+  );
 }

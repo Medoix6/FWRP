@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 import { isRateLimited } from '@/lib/rateLimit';
 import { handleApiError, ValidationError, AuthenticationError, RateLimitError, createSuccessResponse } from '@/lib/apiError';
-import { validateFoodName, validateDescription, validateLocation, validateDate, validateFileType, validateFileSize } from '@/lib/validation';
+import { validateFoodName, validateDescription, validateLocation, validateDate, validateFileType, validateFileSize, validateCategory, validateServings, validateAllergens, validatePackaging, validatePickupWindow } from '@/lib/validation';
 import { getUserFromAuth } from '@/lib/serverAuth';
 import { validateCsrfToken } from '@/lib/csrf';
 import { getAdminDb } from '@/app/firebaseAdmin';
@@ -44,6 +44,14 @@ export async function POST(req: NextRequest) {
     const images = formData.getAll('images') as File[];
     const expiryDate = formData.get('expiryDate') as string;
     const pickupInstructions = (formData.get('pickupInstructions') as string) || '';
+    const category = (formData.get('category') as string) || '';
+    const quantityServingsValue = formData.get('quantityServings') as string;
+    const allergensValue = (formData.get('allergens') as string) || '';
+    const packaging = (formData.get('packaging') as string) || '';
+    const pickupWindowStart = (formData.get('pickupWindowStart') as string) || '';
+    const pickupWindowEnd = (formData.get('pickupWindowEnd') as string) || '';
+    const locationLatValue = formData.get('locationLat') as string;
+    const locationLngValue = formData.get('locationLng') as string;
 
     // Validate required fields
     if (!foodName || !description || !location || images.length === 0) {
@@ -55,6 +63,17 @@ export async function POST(req: NextRequest) {
     const validatedDescription = validateDescription(description);
     const validatedLocation = validateLocation(location);
     const validatedExpiryDate = validateDate(expiryDate);
+    const validatedCategory = category ? validateCategory(category) : undefined;
+    const validatedServings = quantityServingsValue ? validateServings(Number(quantityServingsValue)) : undefined;
+    const validatedAllergens = allergensValue ? validateAllergens(allergensValue) : [];
+    const validatedPackaging = packaging ? validatePackaging(packaging) : undefined;
+    const validatedPickupWindowStart = pickupWindowStart ? validatePickupWindow(pickupWindowStart) : undefined;
+    const validatedPickupWindowEnd = pickupWindowEnd ? validatePickupWindow(pickupWindowEnd) : undefined;
+    const locationLat = locationLatValue ? Number(locationLatValue) : undefined;
+    const locationLng = locationLngValue ? Number(locationLngValue) : undefined;
+    const locationCoords = Number.isFinite(locationLat) && Number.isFinite(locationLng)
+      ? { lat: locationLat as number, lng: locationLng as number }
+      : undefined;
 
     // Validate images
     if (images.length > MAX_IMAGES) {
@@ -109,6 +128,17 @@ export async function POST(req: NextRequest) {
       expiryDate: validatedExpiryDate,
       pickupInstructions: pickupInstructions.substring(0, 500),
       imageUrls,
+      category: validatedCategory || '',
+      quantityServings: validatedServings ?? null,
+      allergens: validatedAllergens,
+      packaging: validatedPackaging || '',
+      pickupWindowStart: validatedPickupWindowStart || '',
+      pickupWindowEnd: validatedPickupWindowEnd || '',
+      locationCoords: locationCoords || null,
+      status: 'available',
+      reservedBy: null,
+      reservedAt: null,
+      pickedUpAt: null,
       userId: user.uid,
       userEmail: user.email,
       userName: user.name || user.displayName || 'Anonymous',
@@ -141,13 +171,32 @@ export async function GET(req: NextRequest) {
       .limit(100)
       .get();
 
-    const donations = snapshot.docs.map(doc => ({ 
-      id: doc.id, 
-      ...doc.data() 
-    }));
+    const now = Date.now();
+    const updates: Promise<unknown>[] = [];
+    const donations = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const expiryDate = data.expiryDate ? new Date(data.expiryDate).getTime() : null;
+      const currentStatus = data.status || 'available';
+      let nextStatus = currentStatus;
+      if ((currentStatus === 'available' || currentStatus === 'reserved') && expiryDate && expiryDate < now) {
+        nextStatus = 'expired';
+        updates.push(doc.ref.update({ status: 'expired', updatedAt: new Date().toISOString() }));
+      }
+      return {
+        id: doc.id,
+        ...data,
+        status: nextStatus,
+      };
+    });
+
+    if (updates.length > 0) {
+      await Promise.allSettled(updates);
+    }
+
+    const visibleDonations = donations.filter((donation) => donation.status !== "removed");
 
     return NextResponse.json(
-      createSuccessResponse({ donations }),
+      createSuccessResponse({ donations: visibleDonations }),
       { status: 200 }
     );
   } catch (error) {
