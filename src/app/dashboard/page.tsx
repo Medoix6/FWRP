@@ -37,6 +37,7 @@ import { AuthTokenManager } from "@/lib/clientAuth";
 import { getCsrfHeaders } from "@/lib/clientCsrf";
 import { logout } from "@/lib/logout";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import toast from "react-hot-toast";
 import Sidebar from "@/components/Sidebar";
@@ -85,6 +86,7 @@ interface DonatedFoodType {
 export default function Dashboard() {
   const router = useRouter();
   const { userProfile, loading: authLoading } = useAuth();
+  const { language, t } = useLanguage();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [donatedFood, setDonatedFood] = useState<DonatedFoodType[]>([]);
@@ -372,12 +374,12 @@ export default function Dashboard() {
     const activeDonors = Object.keys(donorProfiles).length;
 
     return [
-      { label: "Available Donations", value: available, icon: Gift, color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
-      { label: "Rescued Food Items", value: rescued, icon: Heart, color: "text-rose-600 bg-rose-50 border-rose-100" },
-      { label: "Total Platform Listings", value: totalCount, icon: TrendingUp, color: "text-amber-600 bg-amber-50 border-amber-100" },
-      { label: "Active Contributors", value: activeDonors, icon: User, color: "text-sky-600 bg-sky-50 border-sky-100" },
+      { label: t("dashboard.statusAvailable"), value: available, icon: Gift, color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
+      { label: t("dashboard.statsRescued"), value: rescued, icon: Heart, color: "text-rose-600 bg-rose-50 border-rose-100" },
+      { label: t("dashboard.titleMyListings"), value: totalCount, icon: TrendingUp, color: "text-amber-600 bg-amber-50 border-amber-100" },
+      { label: t("dashboard.statsDonors"), value: activeDonors, icon: User, color: "text-sky-600 bg-sky-50 border-sky-100" },
     ];
-  }, [donatedFood, donorProfiles]);
+  }, [donatedFood, donorProfiles, t]);
 
   const activePath: string = "/dashboard";
 
@@ -404,13 +406,13 @@ export default function Dashboard() {
           {/* Header */}
           <header className="bg-white border-b border-slate-100 py-6 px-6 sm:px-8 flex justify-between items-center">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 font-display">Dashboard</h1>
-              <p className="text-sm text-gray-500 mt-1 font-body">Browse available community surplus food listings</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 font-display">{t("common.dashboard")}</h1>
+              <p className="text-sm text-gray-500 mt-1 font-body">{t("dashboard.subtitle")}</p>
             </div>
             <Link href="/donate-food">
               <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-2 py-5 px-4 shadow-sm hover:shadow">
                 <PlusCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Add Donation</span>
+                <span className="hidden sm:inline">{t("dashboard.btnDonate")}</span>
               </Button>
             </Link>
           </header>
@@ -494,7 +496,7 @@ export default function Dashboard() {
                     <Label htmlFor="search" className="text-xs font-semibold text-gray-500 uppercase">Keyword Search</Label>
                     <Input
                       id="search"
-                      placeholder="Search food name or location..."
+                      placeholder={t("dashboard.searchPlaceholder")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="border-slate-100 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl"
@@ -509,10 +511,10 @@ export default function Dashboard() {
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
                     >
-                      <option value="all">All statuses</option>
-                      <option value="available">Available</option>
-                      <option value="reserved">Reserved</option>
-                      <option value="picked_up">Picked up</option>
+                      <option value="all">{t("dashboard.statusAll")}</option>
+                      <option value="available">{t("dashboard.statusAvailable")}</option>
+                      <option value="reserved">{t("dashboard.statusReserved")}</option>
+                      <option value="picked_up">{t("dashboard.statusPicked")}</option>
                       <option value="expired">Expired</option>
                       <option value="cancelled">Cancelled</option>
                     </select>
@@ -526,13 +528,13 @@ export default function Dashboard() {
                       value={categoryFilter}
                       onChange={(e) => setCategoryFilter(e.target.value)}
                     >
-                      <option value="all">All categories</option>
-                      <option value="produce">Produce</option>
-                      <option value="cooked">Cooked</option>
-                      <option value="bakery">Bakery</option>
-                      <option value="pantry">Pantry</option>
-                      <option value="dairy">Dairy</option>
-                      <option value="other">Other</option>
+                      <option value="all">{t("dashboard.filterAll")}</option>
+                      <option value="produce">{t("dashboard.filterProduce")}</option>
+                      <option value="cooked">{t("dashboard.filterMeals")}</option>
+                      <option value="bakery">{t("dashboard.filterBakery")}</option>
+                      <option value="pantry">{t("dashboard.filterCanned")}</option>
+                      <option value="dairy">{t("dashboard.filterDairy")}</option>
+                      <option value="other">{t("dashboard.filterOther")}</option>
                     </select>
                   </div>
                 </div>
@@ -551,7 +553,7 @@ export default function Dashboard() {
 
                   <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                     <Button variant="outline" size="sm" onClick={handleGetLocation} className="border-slate-200 hover:bg-emerald-50/50 hover:text-emerald-700 rounded-xl">
                       <MapPin className="h-4 w-4 mr-2" />
                       Distance Filter
@@ -574,9 +576,9 @@ export default function Dashboard() {
                       variant="outline"
                       size="sm"
                       onClick={() => setMapView(!mapView)}
-                      className="border-slate-200 hover:bg-emerald-50/50 hover:text-emerald-700 rounded-xl ml-auto"
+                      className="border-slate-200 hover:bg-emerald-50/50 hover:text-emerald-700 rounded-xl ltr:ml-auto rtl:mr-auto"
                     >
-                      {mapView ? "Show List View" : "Show Map View"}
+                      {mapView ? t("dashboard.btnList") : t("dashboard.btnMap")}
                     </Button>
                   </div>
                 </div>
@@ -593,14 +595,14 @@ export default function Dashboard() {
             ) : filteredDonations.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm p-8 flex flex-col items-center">
                 <Inbox className="h-16 w-16 mb-4 text-slate-300" />
-                <p className="text-lg font-bold text-slate-700">No Food Donations Found</p>
+                <p className="text-lg font-bold text-slate-700">{t("dashboard.noDonations")}</p>
                 <p className="text-sm text-slate-400 mt-1 max-w-sm">
-                  We couldn&apos;t find any listings matching your search filter options. Try adjusting filters or add a new donation.
+                  {t("dashboard.noDonationsSub")}
                 </p>
                 <Link href="/donate-food" className="mt-6">
                   <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-2">
                     <PlusCircle className="h-4 w-4" />
-                    Create First Listing
+                    {t("dashboard.btnDonate")}
                   </Button>
                 </Link>
               </div>
@@ -699,17 +701,17 @@ export default function Dashboard() {
 
                           <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs border-t border-slate-100 pt-4">
                             <div className="col-span-2 flex items-start gap-1">
-                              <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">Location:</span>
+                              <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">{t("completeProfile.labelAddress")}:</span>
                               <span className="text-gray-700 truncate">{item.location}</span>
                             </div>
                             {distance !== null && (
                               <div className="col-span-2 flex items-center gap-1">
                                 <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">Distance:</span>
-                                <span className="text-gray-700 font-semibold text-emerald-600">{distance} km away</span>
+                                <span className="text-gray-700 font-semibold text-emerald-600">{distance} km {t("dashboard.cardDistance")}</span>
                               </div>
                             )}
                             <div className="flex items-center gap-1">
-                              <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">Expires:</span>
+                              <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">{t("dashboard.cardExpires")}</span>
                               <span className="text-gray-700 font-semibold">{item.expiryDate || "N/A"}</span>
                             </div>
                             <div className="flex items-center gap-1">
@@ -718,25 +720,25 @@ export default function Dashboard() {
                             </div>
                             {item.quantityServings && (
                               <div className="flex items-center gap-1">
-                                <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">Servings:</span>
+                                <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">{t("dashboard.cardQuantity")}</span>
                                 <span className="text-gray-700">{item.quantityServings}</span>
                               </div>
                             )}
                             {item.packaging && (
                               <div className="flex items-center gap-1">
-                                <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">Packaging:</span>
+                                <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">{t("dashboard.cardPackaging")}</span>
                                 <span className="text-gray-700 truncate">{item.packaging}</span>
                               </div>
                             )}
                             {item.pickupWindowStart && item.pickupWindowEnd && (
                               <div className="col-span-2 flex items-start gap-1">
-                                <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">Window:</span>
+                                <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">{t("dashboard.cardPickupWindow")}</span>
                                 <span className="text-gray-700">{item.pickupWindowStart} - {item.pickupWindowEnd}</span>
                               </div>
                             )}
                             {item.allergens && item.allergens.length > 0 && (
                               <div className="col-span-2 flex items-start gap-1">
-                                <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">Allergens:</span>
+                                <span className="font-semibold text-gray-400 uppercase w-20 shrink-0">{t("dashboard.cardAllergens")}</span>
                                 <span className="text-red-500 font-semibold truncate">{item.allergens.join(", ")}</span>
                               </div>
                             )}
@@ -752,18 +754,18 @@ export default function Dashboard() {
                               className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
                               onClick={() => handleDonationAction(item.id, "reserve")}
                             >
-                              Reserve Food
+                              {t("dashboard.btnClaim")}
                             </Button>
                           )}
                           {!isOwner && item.userId && (
                             <Button
-                              className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/60 rounded-xl"
+                              className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/60 rounded-xl flex items-center justify-center"
                               onClick={() => {
                                 router.push(`/chat?donorId=${item.userId}&donationId=${item.id}`);
                               }}
                             >
-                              <MessageCircle className="h-4 w-4 mr-2" />
-                              Chat
+                              <MessageCircle className="h-4 w-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                              {t("common.chat")}
                             </Button>
                           )}
                           {isReservedByUser && item.status === "reserved" && (
@@ -771,7 +773,7 @@ export default function Dashboard() {
                               className="flex-1 bg-amber-550 hover:bg-amber-600 bg-amber-500 text-white rounded-xl"
                               onClick={() => handleDonationAction(item.id, "cancel_reservation")}
                             >
-                              Cancel Reservation
+                              {language === "en" ? "Cancel Reservation" : "إلغاء الحجز"}
                             </Button>
                           )}
                           {isOwner && item.status === "reserved" && (
@@ -779,7 +781,7 @@ export default function Dashboard() {
                               className="flex-1 bg-sky-600 hover:bg-sky-700 text-white rounded-xl"
                               onClick={() => handleDonationAction(item.id, "mark_picked_up")}
                             >
-                              Mark as Picked Up
+                              {language === "en" ? "Mark as Picked Up" : "تأكيد الاستلام"}
                             </Button>
                           )}
                           {isOwner && (item.status === "available" || item.status === "reserved") && (
@@ -787,7 +789,7 @@ export default function Dashboard() {
                               className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 rounded-xl"
                               onClick={() => handleDonationAction(item.id, "cancel_donation")}
                             >
-                              Remove listing
+                              {language === "en" ? "Remove listing" : "إزالة القائمة"}
                             </Button>
                           )}
                           {isOwner && (
@@ -797,7 +799,7 @@ export default function Dashboard() {
                                 router.push(`/edit-donation/${item.id}`);
                               }}
                             >
-                              Edit
+                              {language === "en" ? "Edit" : "تعديل"}
                             </Button>
                           )}
                           {!isOwner && (

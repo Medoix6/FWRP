@@ -9,14 +9,16 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, KeyRound, Mail, Sparkles, ShieldCheck, HeartHandshake } from "lucide-react";
+import { ArrowLeft, KeyRound, Mail, Sparkles, ShieldCheck, HeartHandshake, Globe } from "lucide-react";
 import { auth, firebaseInitError } from "@/app/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { AuthTokenManager } from "@/lib/clientAuth";
 import toast from "react-hot-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -31,7 +33,7 @@ export default function SignupPage() {
     event.preventDefault();
 
     if (password !== passwordConfirm) {
-      toast.error("Both passwords don't match");
+      toast.error(t("signup.toastPassMismatch"));
       return;
     }
     if (!passwordValidation(password)) {
@@ -73,7 +75,7 @@ export default function SignupPage() {
         }
       }
       
-      toast.success("Signup successful! Let's complete your profile.");
+      toast.success(t("signup.toastSuccess"));
       router.push("/complete-profile");
     } catch (error: any) {
       console.error("Error signing up:", error);
@@ -108,7 +110,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-white dark:bg-neutral-950 transition-colors duration-500">
       {/* Left Panel: Brand panel (Split layout) */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-800 to-emerald-950 p-12 flex-col justify-between text-white relative overflow-hidden">
         {/* Decorative ambient blobs */}
@@ -117,9 +119,9 @@ export default function SignupPage() {
         
         <div className="flex items-center gap-2 z-10">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-emerald-800 font-bold text-xl shadow-md">
-            F
+            {t("common.logoLetter")}
           </span>
-          <span className="text-2xl font-bold tracking-tight">FWRP</span>
+          <span className="text-2xl font-bold tracking-tight">{t("common.brand")}</span>
         </div>
 
         <div className="space-y-6 z-10 max-w-lg">
@@ -139,15 +141,15 @@ export default function SignupPage() {
           <div className="flex items-start gap-3">
             <ShieldCheck className="h-6 w-6 text-emerald-400 shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-white">Safe & Secure</h4>
-              <p className="text-sm text-emerald-200/70 mt-0.5">Role based access control and verified profiles.</p>
+              <h4 className="font-semibold text-white">{t("signup.benefitTitle")}</h4>
+              <p className="text-sm text-emerald-200/70 mt-0.5">{t("signup.benefit2Desc")}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <HeartHandshake className="h-6 w-6 text-emerald-400 shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-white">Direct Impact</h4>
-              <p className="text-sm text-emerald-200/70 mt-0.5">Track your rescued meals and carbon footprint reduction.</p>
+              <h4 className="font-semibold text-white">{t("signup.benefit3Title")}</h4>
+              <p className="text-sm text-emerald-200/70 mt-0.5">{t("signup.benefit3Desc")}</p>
             </div>
           </div>
         </div>
@@ -155,27 +157,39 @@ export default function SignupPage() {
 
       {/* Right Panel: Signup Form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center py-12 px-6 sm:px-12 lg:px-20 bg-emerald-50/20 relative">
+        
+        {/* Back to Home Button */}
         <Button
           variant="ghost"
           onClick={() => router.push("/")}
-          className="absolute top-6 left-6 text-gray-600 hover:text-emerald-700 flex items-center gap-2 hover:bg-emerald-50/50 rounded-xl"
+          className="absolute top-6 start-6 text-gray-600 hover:text-emerald-700 flex items-center gap-2 hover:bg-emerald-50/50 rounded-xl"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Home</span>
+          <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+          <span>{t("common.backToHome")}</span>
         </Button>
 
-        <div className="mx-auto w-full max-w-md">
+        {/* Language switcher button */}
+        <Button
+          variant="ghost"
+          onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+          className="absolute top-6 end-6 text-emerald-700 hover:text-emerald-800 flex items-center gap-1.5 hover:bg-emerald-50/50 rounded-xl font-medium px-3 py-2 transition-all duration-200"
+        >
+          <Globe className="h-4 w-4" />
+          <span>{language === "en" ? "العربية" : "English"}</span>
+        </Button>
+
+        <div className="mx-auto w-full max-w-md mt-10">
           <div className="bg-white py-10 px-8 sm:px-10 shadow-lg border border-emerald-100 rounded-2xl">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900">Create Account</h2>
-              <p className="mt-2 text-sm text-gray-500">Get started by filling out the details below</p>
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900">{t("signup.title")}</h2>
+              <p className="mt-2 text-sm text-gray-500">{t("signup.subtitle")}</p>
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-1">
-                <Label htmlFor="email">Email address</Label>
+                <Label htmlFor="email">{t("signup.labelEmail")}</Label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                  <span className="absolute inset-y-0 start-0 ps-3.5 flex items-center text-gray-400">
                     <Mail className="h-5 w-5" />
                   </span>
                   <Input
@@ -186,16 +200,16 @@ export default function SignupPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl py-5"
+                    placeholder={t("signup.placeholderEmail")}
+                    className="ps-10 pe-4 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl py-5"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("signup.labelPassword")}</Label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                  <span className="absolute inset-y-0 start-0 ps-3.5 flex items-center text-gray-400">
                     <KeyRound className="h-5 w-5" />
                   </span>
                   <Input
@@ -207,7 +221,7 @@ export default function SignupPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl py-5"
+                    className="ps-10 pe-4 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl py-5"
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
@@ -216,9 +230,9 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="password-confirm">Confirm Password</Label>
+                <Label htmlFor="password-confirm">{t("signup.labelConfirmPassword")}</Label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                  <span className="absolute inset-y-0 start-0 ps-3.5 flex items-center text-gray-400">
                     <KeyRound className="h-5 w-5" />
                   </span>
                   <Input
@@ -230,7 +244,7 @@ export default function SignupPage() {
                     value={passwordConfirm}
                     onChange={(e) => setPasswordConfirm(e.target.value)}
                     placeholder="••••••••"
-                    className="pl-10 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl py-5"
+                    className="ps-10 pe-4 border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 rounded-xl py-5"
                   />
                 </div>
               </div>
@@ -240,15 +254,15 @@ export default function SignupPage() {
                 disabled={isSubmitting}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-5 rounded-xl transition-all shadow-md hover:shadow-lg flex justify-center items-center gap-2"
               >
-                {isSubmitting ? "Creating account..." : "Sign up"}
+                {isSubmitting ? t("signup.btnSubmitting") : t("signup.btnSubmit")}
               </Button>
             </form>
 
             <div className="mt-8 text-center border-t border-gray-100 pt-6">
               <p className="text-sm text-gray-600">
-                Already have an account?{" "}
+                {t("signup.hasAccount")}{" "}
                 <Link href="/login" className="font-semibold text-emerald-600 hover:text-emerald-700">
-                  Login
+                  {t("signup.loginLink")}
                 </Link>
               </p>
             </div>

@@ -10,6 +10,20 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [1.2.0] - 2026-06-26 — Localization & Admin UI Refinement
+
+### Added
+- Multi-language / localization support (English and Arabic) via `LanguageContext` and `LanguageProvider`.
+- Comprehensive translation dictionaries (`src/utils/translations.ts`) for all user-facing interface text.
+- Integrated language selectors in Header and Sidebar components.
+- Automatic RTL (Right-to-Left) direction and Tailwind configuration support when Arabic is selected.
+
+### Changed
+- Redesigned and modernized the Admin Dashboard UI (`src/app/admin/page.tsx`) with dynamic translation support, improved layout styling, cards, stats, and a cleaner table view.
+- Refactored main application pages and shared components (Hero, Features, About, CTA, Header, Footer, Sidebar, Login, Signup, Dashboard, Complete Profile) to use dynamic translation hooks.
+
+---
+
 ## [1.1.0] - 2026-06-20 — UI & Security Modernization
 
 ### Added

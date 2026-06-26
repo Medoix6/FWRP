@@ -1,34 +1,39 @@
-import { Leaf, Users, Utensils, Recycle, HandHeart } from "lucide-react";
+"use client";
 
-const features = [
-  {
-    name: "Eco-Friendly",
-    description: "Cut emissions by routing surplus food to nearby recipients fast.",
-    icon: Leaf,
-  },
-  {
-    name: "Community Sharing",
-    description: "Connect donors, volunteers, and shelters with verified profiles.",
-    icon: Users,
-  },
-  {
-    name: "Efficient Distribution",
-    description: "Automated pickup windows and live chat keep deliveries on track.",
-    icon: Utensils,
-  },
-  {
-    name: "Circular Impact",
-    description: "Track food rescued, meals served, and carbon saved in one place.",
-    icon: Recycle,
-  },
-  {
-    name: "Care Network",
-    description: "Prioritize high-need areas with smart matching and alerts.",
-    icon: HandHeart,
-  },
-];
+import { Leaf, Users, Utensils, Recycle, HandHeart } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Features() {
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      name: t("features.ecoName"),
+      description: t("features.ecoDesc"),
+      icon: Leaf,
+    },
+    {
+      name: t("features.communityName"),
+      description: t("features.communityDesc"),
+      icon: Users,
+    },
+    {
+      name: t("features.distName"),
+      description: t("features.distDesc"),
+      icon: Utensils,
+    },
+    {
+      name: t("features.impactName"),
+      description: t("features.impactDesc"),
+      icon: Recycle,
+    },
+    {
+      name: t("features.careName"),
+      description: t("features.careDesc"),
+      icon: HandHeart,
+    },
+  ];
+
   return (
     <section className="py-16 sm:py-20 bg-gradient-to-b from-emerald-50/40 via-white to-white dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-950 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,10 +41,10 @@ export default function Features() {
         {/* Header Block */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <p className="text-sm font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-            Features
+            {t("features.badge")}
           </p>
           <h2 className="font-display text-3xl sm:text-4xl text-gray-900 dark:text-white leading-tight">
-            Everything you need to rescue food with confidence
+            {t("features.heading")}
           </h2>
         </div>
 

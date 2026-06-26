@@ -30,6 +30,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { LanguageProvider } from "@/contexts/LanguageContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -44,12 +46,14 @@ export default function RootLayout({
           src="https://widget.cloudinary.com/v2.0/global/all.js"
           strategy="beforeInteractive"
         />
-        <AuthProvider>
-          <AuthTokenSync />
-          {children}
-          <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
-          <OfflineBanner />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AuthTokenSync />
+            {children}
+            <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
+            <OfflineBanner />
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

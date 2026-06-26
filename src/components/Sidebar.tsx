@@ -6,11 +6,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { logout } from "@/lib/logout";
 import { auth, db } from "@/app/firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { Home, Gift, MessageCircle, Settings, Shield, LogOut, X } from "lucide-react";
+import { Home, Gift, MessageCircle, Settings, Shield, LogOut, X, Globe } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SidebarProps {
   activePath: string;
@@ -28,6 +29,7 @@ export default function Sidebar({
   const { user, userProfile } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
 
   // Listen to unread message count
   useEffect(() => {
@@ -71,8 +73,9 @@ export default function Sidebar({
       {/* Sidebar Navigation */}
       <div
         className={`
-          fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-neutral-900 shadow-sm border-r border-slate-100 dark:border-neutral-800 transform transition-transform duration-300 ease-in-out flex flex-col justify-between
+          fixed inset-y-0 z-40 w-64 bg-white dark:bg-neutral-900 shadow-sm border-r border-slate-100 dark:border-neutral-800 transform transition-transform duration-300 ease-in-out flex flex-col justify-between
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
+          ltr:left-0 rtl:right-0 ltr:border-r rtl:border-l
         `}
       >
         <div>
@@ -80,9 +83,9 @@ export default function Sidebar({
           <div className="p-6 border-b border-slate-50 dark:border-neutral-800 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 group">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold text-lg group-hover:scale-105 transition-transform">
-                F
+                {t("common.logoLetter")}
               </span>
-              <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">FWRP</span>
+              <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">{t("common.brand")}</span>
             </Link>
             
             {/* Mobile close button */}
@@ -108,7 +111,7 @@ export default function Sidebar({
               <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
                 {userProfile?.name || userProfile?.fullName || "User"}
               </h3>
-              <p className="text-xs text-gray-400 truncate mt-0.5">{userProfile?.email || user?.email}</p>
+              <p className="text-xs text-gray-405 truncate mt-0.5">{userProfile?.email || user?.email}</p>
               {userProfile?.isAdmin && (
                 <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-100 text-emerald-800 border border-emerald-205">
                   Admin
@@ -126,24 +129,24 @@ export default function Sidebar({
                   href="/admin"
                   className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                     activePath === "/admin"
-                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600"
+                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600 rtl:border-l-0 rtl:border-r-4"
                       : "text-gray-650 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
-                  <Shield className="h-5 w-5 mr-3" />
-                  Admin Dashboard
+                  <Shield className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3" />
+                  {t("common.adminDashboard")}
                 </Link>
 
                 <Link
                   href="/edit-profile?admin=1"
                   className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                     activePath === "/edit-profile"
-                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600"
+                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600 rtl:border-l-0 rtl:border-r-4"
                       : "text-gray-650 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
-                  <Settings className="h-5 w-5 mr-3" />
-                  Admin Profile Settings
+                  <Settings className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3" />
+                  {t("common.adminProfileSettings")}
                 </Link>
               </>
             ) : (
@@ -153,36 +156,36 @@ export default function Sidebar({
                   href="/dashboard"
                   className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                     activePath === "/dashboard"
-                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600"
+                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600 rtl:border-l-0 rtl:border-r-4"
                       : "text-gray-655 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
-                  <Home className="h-5 w-5 mr-3" />
-                  Dashboard
+                  <Home className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3" />
+                  {t("common.dashboard")}
                 </Link>
 
                 <Link
                   href="/donate-food"
                   className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                     activePath === "/donate-food"
-                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600"
+                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600 rtl:border-l-0 rtl:border-r-4"
                       : "text-gray-655 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
-                  <Gift className="h-5 w-5 mr-3" />
-                  Donate Food
+                  <Gift className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3" />
+                  {t("common.donateFood")}
                 </Link>
 
                 <Link
                   href="/chat"
                   className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                     activePath === "/chat"
-                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600"
+                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600 rtl:border-l-0 rtl:border-r-4"
                       : "text-gray-655 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
-                  <MessageCircle className="h-5 w-5 mr-3" />
-                  <span className="flex-1">Chat</span>
+                  <MessageCircle className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3" />
+                  <span className="flex-1 text-start">{t("common.chat")}</span>
                   {unreadCount > 0 && (
                     <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                       {unreadCount > 9 ? "9+" : unreadCount}
@@ -194,12 +197,12 @@ export default function Sidebar({
                   href="/edit-profile"
                   className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                     activePath === "/edit-profile"
-                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600"
+                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600 rtl:border-l-0 rtl:border-r-4"
                       : "text-gray-655 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
-                  <Settings className="h-5 w-5 mr-3" />
-                  Profile Settings
+                  <Settings className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3" />
+                  {t("common.profileSettings")}
                 </Link>
 
                 {userProfile?.isAdmin && (
@@ -207,12 +210,12 @@ export default function Sidebar({
                     href="/admin"
                     className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                       activePath === "/admin"
-                        ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600"
+                        ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-l-4 border-emerald-600 rtl:border-l-0 rtl:border-r-4"
                         : "text-gray-655 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-neutral-800/50 hover:text-gray-900 dark:hover:text-white"
                     }`}
                   >
-                    <Shield className="h-5 w-5 mr-3" />
-                    Admin Dashboard
+                    <Shield className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3" />
+                    {t("common.adminDashboard")}
                   </Link>
                 )}
               </>
@@ -220,15 +223,25 @@ export default function Sidebar({
           </nav>
         </div>
 
-        {/* Footer Logout */}
-        <div className="p-4 border-t border-slate-50 dark:border-neutral-800">
+        {/* Footer Logout & Language Switcher */}
+        <div className="p-4 border-t border-slate-50 dark:border-neutral-800 space-y-2">
+          {/* Language selection button */}
+          <Button
+            variant="outline"
+            onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+            className="w-full justify-start border-slate-200 dark:border-neutral-850 text-gray-650 dark:text-gray-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-xl py-5 transition-colors duration-200"
+          >
+            <Globe className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3 text-gray-500 dark:text-gray-400 group-hover:text-emerald-600" />
+            {language === "en" ? "العربية" : "English"}
+          </Button>
+
           <Button
             variant="outline"
             onClick={handleLogout}
             className="w-full justify-start border-slate-200 dark:border-neutral-850 text-gray-650 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-950 rounded-xl py-5 transition-colors duration-200"
           >
-            <LogOut className="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400 group-hover:text-red-600" />
-            Sign out
+            <LogOut className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3 text-gray-500 dark:text-gray-400 group-hover:text-red-600" />
+            {t("common.signOut")}
           </Button>
         </div>
       </div>
