@@ -1,4 +1,4 @@
-import { signInWithEmailAndPassword, sendPasswordResetEmail, Auth } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail, Auth, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
 import { doc, getDoc, Firestore } from "firebase/firestore";
 import { User } from "@/features/user/model";
 
@@ -10,7 +10,16 @@ export class ProfileMissingError extends Error {
 }
 
 // Handles user login and returns user data if successful
-export async function loginUser(auth: Auth, db: Firestore, email: string, password: string): Promise<User | null> {
+export async function loginUser(
+  auth: Auth,
+  db: Firestore,
+  email: string,
+  password: string,
+  rememberMe = false
+): Promise<User | null> {
+  // Set persistence before signing in
+  await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
   const userDoc = await getDoc(doc(db, "users", user.uid));

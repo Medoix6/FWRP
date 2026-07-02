@@ -53,6 +53,14 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     try {
+      // Set persistence to session-only for signup
+      const { setPersistence, browserSessionPersistence } = await import("firebase/auth");
+      await setPersistence(auth, browserSessionPersistence);
+      
+      if (typeof window !== "undefined") {
+        localStorage.setItem("authRememberMe", "false");
+      }
+
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       const token = await credential.user.getIdToken();
       

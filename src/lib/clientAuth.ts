@@ -5,11 +5,32 @@
 export class AuthTokenManager {
   private static readonly TOKEN_KEY = 'firebaseAuthToken';
   private static readonly EXPIRY_KEY = 'firebaseAuthExpiry';
+  private static readonly REMEMBER_KEY = 'authRememberMe';
+
+  private static getStorage(): Storage {
+    if (typeof window !== 'undefined') {
+      try {
+        const remember = localStorage.getItem(this.REMEMBER_KEY) === 'true';
+        return remember ? localStorage : sessionStorage;
+      } catch (error) {
+        console.error('Failed to access storage:', error);
+      }
+    }
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+      clear: () => {},
+      key: () => null,
+      length: 0,
+    };
+  }
 
   static setToken(token: string, expiryMs: number = 3600000): void {
     try {
-      localStorage.setItem(this.TOKEN_KEY, token);
-      localStorage.setItem(this.EXPIRY_KEY, (Date.now() + expiryMs).toString());
+      const storage = this.getStorage();
+      storage.setItem(this.TOKEN_KEY, token);
+      storage.setItem(this.EXPIRY_KEY, (Date.now() + expiryMs).toString());
     } catch (error) {
       console.error('Failed to store auth token:', error);
     }
@@ -17,8 +38,9 @@ export class AuthTokenManager {
 
   static getToken(): string | null {
     try {
-      const token = localStorage.getItem(this.TOKEN_KEY);
-      const expiry = localStorage.getItem(this.EXPIRY_KEY);
+      const storage = this.getStorage();
+      const token = storage.getItem(this.TOKEN_KEY);
+      const expiry = storage.getItem(this.EXPIRY_KEY);
 
       if (!token || !expiry) {
         return null;
@@ -39,8 +61,13 @@ export class AuthTokenManager {
 
   static clearToken(): void {
     try {
-      localStorage.removeItem(this.TOKEN_KEY);
-      localStorage.removeItem(this.EXPIRY_KEY);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.EXPIRY_KEY);
+        localStorage.removeItem(this.REMEMBER_KEY);
+        sessionStorage.removeItem(this.TOKEN_KEY);
+        sessionStorage.removeItem(this.EXPIRY_KEY);
+      }
     } catch (error) {
       console.error('Failed to clear auth token:', error);
     }

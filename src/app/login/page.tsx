@@ -21,6 +21,7 @@ export default function Login() {
   const { language, setLanguage, t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [isResetting, setIsResetting] = useState(false);
@@ -71,19 +72,24 @@ export default function Login() {
 
     setIsSubmitting(true);
     try {
-      const userData = await loginUser(auth, db, email, password);
+      // Save rememberMe preference to localStorage so AuthTokenManager knows where to store client tokens
+      if (typeof window !== "undefined") {
+        localStorage.setItem("authRememberMe", rememberMe ? "true" : "false");
+      }
+
+      const userData = await loginUser(auth, db, email, password, rememberMe);
 
       // Get ID token and create secure session
       const token = await auth.currentUser?.getIdToken();
       if (token) {
-        // Store token in localStorage for client-side API calls
+        // Store token in localStorage/sessionStorage for client-side API calls
         AuthTokenManager.setToken(token);
         
         // Create secure httpOnly session cookie via API
         const sessionRes = await fetch("/api/auth/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idToken: token }),
+          body: JSON.stringify({ idToken: token, rememberMe }),
         });
 
         if (!sessionRes.ok) {
@@ -248,9 +254,11 @@ export default function Login() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded-md"
                 />
-                <label htmlFor="remember-me" className="ml-2.5 rtl:ml-0 rtl:mr-2.5 block text-sm text-gray-700">
+                <label htmlFor="remember-me" className="ml-2.5 rtl:ml-0 rtl:mr-2.5 block text-sm text-gray-700 select-none">
                   Remember me on this device
                 </label>
               </div>

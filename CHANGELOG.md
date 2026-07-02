@@ -8,6 +8,16 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ## [Unreleased]
 
+### Added
+- Dynamic session persistence configuration support based on the user's "Remember me on this device" preference.
+- Proper clean-up of session storage data and preference state when clearing tokens on log out.
+
+### Changed
+- Refactored `AuthTokenManager` client-side authentication token storage to use `sessionStorage` by default (cleared when browser or tab closes), only using `localStorage` when "Remember me" is explicitly checked.
+- Modified the POST `/api/auth/session` endpoint to create a transient browser session cookie (no `maxAge`/`expires` properties) when "Remember me" is false, securing session state on computer/browser restarts.
+- Passed user's `rememberMe` preference from `AuthContext` to ensure the session cookie is correctly synced on page reloads without overriding the persistent state.
+- Redesigned and modernized the Learn More page (`src/app/learn-more/page.tsx`) by integrating the shared `Header` and `Footer` layout, aligning typography, card styling, and adding complete light/dark mode support.
+
 ---
 
 ## [1.2.0] - 2026-06-26 — Localization & Admin UI Refinement

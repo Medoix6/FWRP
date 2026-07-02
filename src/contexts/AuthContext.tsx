@@ -38,10 +38,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           AuthTokenManager.setToken(tokenResult.token, expiryMs);
           
           // Call API to set session cookie
+          const rememberMe = typeof window !== 'undefined' && localStorage.getItem('authRememberMe') === 'true';
           await fetch('/api/auth/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken: tokenResult.token }),
+            body: JSON.stringify({ idToken: tokenResult.token, rememberMe }),
           });
         } catch (error) {
           console.error("Failed to sync auth token:", error);

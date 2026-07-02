@@ -8,7 +8,7 @@ import { getAdminAuth } from '@/app/firebaseAdmin';
 export async function POST(request: NextRequest) {
   try {
     const adminAuth = getAdminAuth();
-    const { idToken } = await request.json();
+    const { idToken, rememberMe } = await request.json();
 
     if (!idToken) {
       return NextResponse.json(
@@ -26,14 +26,19 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ success: true });
 
-    // Set httpOnly cookie
-    response.cookies.set('authToken', sessionCookie, {
-      maxAge: expiresIn / 1000, 
+    const cookieOptions: any = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-    });
+    };
+
+    if (rememberMe) {
+      cookieOptions.maxAge = expiresIn / 1000;
+    }
+
+    // Set httpOnly cookie
+    response.cookies.set('authToken', sessionCookie, cookieOptions);
 
     return response;
   } catch (error) {
