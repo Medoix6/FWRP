@@ -1,7 +1,12 @@
 // Import the functions you need from the SDKs you need
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { 
+  getFirestore, 
+  initializeFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager 
+} from "firebase/firestore";
 import type { FirebaseOptions } from "firebase/app";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -43,16 +48,24 @@ const app = isBrowser && !missingConfig.length
   : null;
 
 export const auth = app ? getAuth(app) : (undefined as unknown as ReturnType<typeof getAuth>);
-export const db = app ? getFirestore(app) : (undefined as unknown as ReturnType<typeof getFirestore>);
+export const db = (() => {
+  if (!app) return undefined as unknown as ReturnType<typeof getFirestore>;
 
-if (isBrowser && db) {
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code === "failed-precondition") {
-      console.warn("Firestore persistence failed: multiple tabs open.");
-    } else if (err.code === "unimplemented") {
-      console.warn("Firestore persistence not supported in this browser.");
+  if (isBrowser) {
+    try {
+      return initializeFirestore(app, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+      });
+    } catch (err) {
+      // In Next.js development (hot reloading), initializeFirestore may throw if already initialized.
+      // We fall back to getFirestore which retrieves the existing instance.
+      return getFirestore(app);
     }
-  });
-}
+  }
+
+  return getFirestore(app);
+})();
 
 export { firebaseInitError };
