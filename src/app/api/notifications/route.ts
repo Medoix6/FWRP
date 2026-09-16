@@ -95,11 +95,23 @@ export async function POST(request: NextRequest) {
     const sender = await getUserFromAuth(request);
     const { receiverId, message, donationId } = await request.json() as { receiverId?: string; message?: string; donationId?: string };
 
-    if (!receiverId || !message) {
-      throw new ValidationError("Receiver and message are required");
+    if (!receiverId || !message || !donationId) {
+      throw new ValidationError("Receiver, message, and donationId are required");
     }
     if (receiverId === sender.uid) {
       throw new ValidationError("Cannot notify yourself");
+    }
+
+    // Verify relationship: both sender and receiver must be participants in the donation
+    const donationDoc = await db.collection("donated_food").doc(donationId).get();
+    if (!donationDoc.exists) {
+      throw new ValidationError("Donation not found");
+    }
+    const donation = donationDoc.data() || {};
+    const isSenderParticipant = donation.userId === sender.uid || donation.reservedBy === sender.uid;
+    const isReceiverParticipant = donation.userId === receiverId || donation.reservedBy === receiverId;
+    if (!isSenderParticipant || !isReceiverParticipant) {
+      throw new ForbiddenError("Not authorized to message this user");
     }
 
     await db.collection("notifications").add({
@@ -107,7 +119,7 @@ export async function POST(request: NextRequest) {
       type: "message",
       title: "New message",
       body: message.substring(0, 200),
-      link: donationId ? `/chat?donorId=${sender.uid}&donationId=${donationId}` : `/chat?donorId=${sender.uid}`,
+      link: `/chat?donorId=${sender.uid}&donationId=${donationId}`,
       read: false,
       createdAt: new Date().toISOString(),
     });

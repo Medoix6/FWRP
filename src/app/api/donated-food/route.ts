@@ -3,7 +3,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { isRateLimited } from '@/lib/rateLimit';
 import { handleApiError, ValidationError, AuthenticationError, RateLimitError, createSuccessResponse } from '@/lib/apiError';
 import { validateFoodName, validateDescription, validateLocation, validateDate, validateFileType, validateFileSize, validateCategory, validateServings, validateAllergens, validatePackaging, validatePickupWindow } from '@/lib/validation';
-import { getUserFromAuth } from '@/lib/serverAuth';
+import { getUserFromAuth, verifyRequestAuth } from '@/lib/serverAuth';
 import { validateCsrfToken } from '@/lib/csrf';
 import { getAdminDb } from '@/app/firebaseAdmin';
 
@@ -165,6 +165,9 @@ export async function GET(req: NextRequest) {
       throw new RateLimitError(300);
     }
 
+    // Authentication
+    await verifyRequestAuth(req);
+
     const snapshot = await db
       .collection('donated_food')
       .orderBy('createdAt', 'desc')
@@ -182,9 +185,13 @@ export async function GET(req: NextRequest) {
         nextStatus = 'expired';
         updates.push(doc.ref.update({ status: 'expired', updatedAt: new Date().toISOString() }));
       }
+
+      // Strip PII fields before returning
+      const { userEmail, locationCoords, ...safeData } = data;
+
       return {
         id: doc.id,
-        ...data,
+        ...safeData,
         status: nextStatus,
       };
     });

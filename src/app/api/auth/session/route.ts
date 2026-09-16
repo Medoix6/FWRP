@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth } from '@/app/firebaseAdmin';
+import { validateCsrfToken } from '@/lib/csrf';
 
 /**
  * POST /api/auth/session
@@ -7,6 +8,8 @@ import { getAdminAuth } from '@/app/firebaseAdmin';
  */
 export async function POST(request: NextRequest) {
   try {
+    validateCsrfToken(request);
+
     const adminAuth = getAdminAuth();
     const { idToken, rememberMe } = await request.json();
 
@@ -56,6 +59,8 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    validateCsrfToken(request);
+
     const adminAuth = getAdminAuth();
     const token = request.cookies.get('authToken')?.value;
 

@@ -57,6 +57,11 @@ export default function CompleteProfile() {
       return;
     }
 
+    if (!window.isSecureContext) {
+      toast.error(t("completeProfile.toastLocSecure"));
+      return;
+    }
+
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -86,9 +91,24 @@ export default function CompleteProfile() {
         }
       },
       (error) => {
-        console.error("Geolocation error:", error);
-        toast.error(t("completeProfile.toastLocFail"));
+        console.error("Geolocation error:", {
+          code: error.code,
+          message: error.message,
+        });
+
+        const errorMessage = error.code === GeolocationPositionError.PERMISSION_DENIED
+          ? t("completeProfile.toastLocDenied")
+          : error.code === GeolocationPositionError.TIMEOUT
+            ? t("completeProfile.toastLocTimeout")
+            : t("completeProfile.toastLocFail");
+
+        toast.error(errorMessage);
         setIsLocating(false);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000,
       }
     );
   };
@@ -301,4 +321,3 @@ export default function CompleteProfile() {
     </div>
   )
 }
-

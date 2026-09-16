@@ -5,11 +5,16 @@
 
 import { auth } from '@/app/firebase';
 import { AuthTokenManager } from './clientAuth';
+import { getCsrfHeaders } from './clientCsrf';
 
 export async function logout() {
   try {
-    // 1. Clear server-side session cookie
-    await fetch('/api/auth/session', { method: 'DELETE' });
+    // 1. Clear server-side session cookie (with CSRF token)
+    const csrfHeaders = await getCsrfHeaders();
+    await fetch('/api/auth/session', {
+      method: 'DELETE',
+      headers: { ...csrfHeaders },
+    });
     
     // 2. Sign out from Firebase client
     await auth.signOut();

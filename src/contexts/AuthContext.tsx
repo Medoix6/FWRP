@@ -5,6 +5,7 @@ import { onIdTokenChanged, User as FirebaseUser } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/app/firebase";
 import { AuthTokenManager } from "@/lib/clientAuth";
+import { getCsrfHeaders } from "@/lib/clientCsrf";
 
 interface AuthContextType {
   user: FirebaseUser | null;
@@ -39,9 +40,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           // Call API to set session cookie
           const rememberMe = typeof window !== 'undefined' && localStorage.getItem('authRememberMe') === 'true';
+          const csrfHeaders = await getCsrfHeaders();
           await fetch('/api/auth/session', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...csrfHeaders },
             body: JSON.stringify({ idToken: tokenResult.token, rememberMe }),
           });
         } catch (error) {
@@ -65,8 +67,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUserProfile(null);
         AuthTokenManager.clearToken();
         
-        // Clear session cookie
-        fetch("/api/auth/session", { method: "DELETE" }).catch(() => {});
+        // Clear session cookie (with CSRF token)
+        getCsrfHeaders().then(csrfHeaders =>
+          fetch("/api/auth/session", { method: "DELETE", headers: { ...csrfHeaders } })
+        ).catch(() => {});
         setLoading(false);
       }
     });

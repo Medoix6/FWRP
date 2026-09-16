@@ -1,6 +1,6 @@
 import { AuthTokenManager } from "@/lib/clientAuth";
 import { getCsrfHeaders } from "@/lib/clientCsrf";
-import { sanitizeText } from "@/utils/sanitize";
+import { sanitizeTextSync as sanitizeText } from "@/utils/sanitize";
 
 export interface CreateDonationPayload {
   foodName: string;

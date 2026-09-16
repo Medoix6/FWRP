@@ -18,7 +18,7 @@ export async function verifyIdToken(token: string, checkRevoked = true) {
     const decodedToken = await adminAuth.verifyIdToken(token, checkRevoked);
     return decodedToken;
   } catch (error) {
-    console.error('Token verification failed:', error);
+    console.error('Token verification failed:', (error as any)?.code || 'unknown');
     throw new AuthenticationError('Invalid or expired token');
   }
 }
@@ -44,7 +44,7 @@ export async function verifyRequestAuth(request: NextRequest) {
       const adminAuth = getAdminAuth();
       return await adminAuth.verifySessionCookie(token, true);
     } catch (error) {
-      console.error('Session cookie verification failed:', error);
+      console.error('Session cookie verification failed:', (error as any)?.code || 'unknown');
       throw new AuthenticationError('Invalid or expired session');
     }
   }

@@ -13,7 +13,7 @@ import {
   getDocs,
   writeBatch
 } from "firebase/firestore";
-import { sanitizeText } from "@/utils/sanitize";
+import { sanitizeTextSync as sanitizeText } from "@/utils/sanitize";
 
 export const chatsService = {
   async getChatRoom(chatRoomId: string) {

@@ -28,6 +28,9 @@ export async function GET(
       throw new RateLimitError(300);
     }
 
+    // Authentication
+    await getUserFromAuth(request);
+
     const { id: donationId } = await context.params;
     if (!donationId) {
       throw new ValidationError("Donation ID required");
@@ -49,11 +52,14 @@ export async function GET(
       await docRef.update({ status: "expired", updatedAt: new Date().toISOString() });
     }
 
+    // Strip PII fields before returning
+    const { userEmail, locationCoords, ...safeData } = data || {};
+
     return NextResponse.json({
       success: true,
       data: {
         id: docSnap.id,
-        ...data,
+        ...safeData,
         status: nextStatus,
       }
     }, { status: 200 });

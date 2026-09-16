@@ -10,7 +10,7 @@ interface CloudinaryAvatarProps {
   height?: number;
 }
 
-const cld = new Cloudinary({ cloud: { cloudName: 'drig5ndvt' } });
+const cld = new Cloudinary({ cloud: { cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '' } });
 
 const CloudinaryAvatar: React.FC<CloudinaryAvatarProps> = ({ publicId, width = 500, height = 500 }) => {
   const img = cld

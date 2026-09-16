@@ -32,7 +32,7 @@ export async function GET(
     const isSelfOrAdmin = requester.uid === userId || requester.isAdmin;
     const responseData = isSelfOrAdmin
       ? { id: userId, name, phone, avatar, address, city, state, postalCode, bio, email, isVerified, ratingAverage: ratingAverage || 0, ratingCount: ratingCount || 0 }
-      : { id: userId, name, phone, avatar, isVerified, ratingAverage: ratingAverage || 0, ratingCount: ratingCount || 0 };
+      : { id: userId, name, avatar, isVerified, ratingAverage: ratingAverage || 0, ratingCount: ratingCount || 0 };
     
     return NextResponse.json(
       createSuccessResponse(responseData),

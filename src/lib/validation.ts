@@ -24,6 +24,9 @@ export function sanitizeEmail(email: string): string {
 export function validateUrl(url: string): string {
   try {
     const parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      throw new Error('Only HTTP and HTTPS URLs are allowed');
+    }
     return parsed.toString();
   } catch {
     throw new Error('Invalid URL format');
@@ -115,8 +118,8 @@ export function validatePickupWindow(windowValue: string): string {
 }
 
 export function validatePassword(password: string): boolean {
-  // At least 6 characters, 1 uppercase, 1 number
-  return /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password);
+  // At least 8 characters, 1 lowercase, 1 uppercase, 1 number, 1 special character
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/.test(password);
 }
 
 export function validateFileType(file: File, allowedTypes: string[]): void {

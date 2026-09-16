@@ -97,8 +97,10 @@ export function handleApiError(error: unknown) {
   }
 
   if (error instanceof Error) {
+    // Log the real error server-side only
+    console.error('Internal error:', error.message);
     const response = createErrorResponse(
-      new ApiError(500, error.message, 'INTERNAL_SERVER_ERROR')
+      new ApiError(500, 'An internal server error occurred', 'INTERNAL_SERVER_ERROR')
     );
     return NextResponse.json(response, { status: 500 });
   }
