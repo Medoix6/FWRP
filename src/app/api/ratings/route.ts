@@ -92,13 +92,13 @@ export async function GET(request: NextRequest) {
     if (isRateLimited(`get-ratings-${clientId}`)) {
       throw new RateLimitError(300);
     }
+    const user = await getUserFromAuth(request);
 
     const { searchParams } = new URL(request.url);
     const donationId = searchParams.get("donationId");
     const userId = searchParams.get("userId");
 
     if (donationId) {
-      const user = await getUserFromAuth(request);
       const ratingId = `${donationId}_${user.uid}`;
       const ratingSnap = await db.collection("ratings").doc(ratingId).get();
       if (!ratingSnap.exists) {
@@ -114,7 +114,16 @@ export async function GET(request: NextRequest) {
         .orderBy("createdAt", "desc")
         .limit(50)
         .get();
-      const ratings = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      // Ratings are visible only to authenticated callers and expose no
+      // relationship or donation identifiers through this public endpoint.
+      const ratings = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          score: data.score,
+          createdAt: data.createdAt,
+        };
+      });
       return NextResponse.json(createSuccessResponse({ ratings }), { status: 200 });
     }
 
